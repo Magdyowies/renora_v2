@@ -1,0 +1,303 @@
+# Product Requirements Document (PRD)
+
+## Product Name
+
+Rentora
+
+## Inspired By
+
+Sixt Egypt (https://www.sixt.com.eg/)
+
+---
+
+## 1. Purpose
+
+The purpose of this document is to define the product requirements for building a **Vehicle Rental Management System** that allows customers to browse and rent vehicles online, vendors to manage their fleets, and administrators to oversee platform operations.
+
+This PRD is based on:
+
+- React.js frontend
+- Django + Django REST Framework backend
+- PostgreSQL database (existing schema)
+
+---
+
+## 2. Goals & Objectives
+
+### Business Goals
+
+- Provide a modern online vehicle rental experience
+- Digitize booking, payment, and fleet management
+- Support multiple vendors and customers
+- Enable scalable growth and future enhancements
+
+### User Goals
+
+- Customers can easily find, book, and pay for vehicles
+- Vendors can manage vehicles and bookings efficiently
+- Admins can control, monitor, and analyze system activity
+
+---
+
+## 3. In-Scope & Out-of-Scope
+
+### In-Scope
+
+- User authentication & authorization
+- Vehicle listing and management
+- Booking system
+- Online payments & wallet
+- Reviews and ratings
+- Promo codes
+- Admin dashboards
+- Chat support
+
+### Out-of-Scope (Phase 1)
+
+- Native mobile applications
+- Real-time vehicle GPS tracking
+- Dynamic surge pricing
+
+---
+
+## 4. User Personas
+
+### 1. Customer
+
+- Wants to rent a vehicle quickly and securely
+- Needs transparent pricing and availability
+
+### 2. Vendor
+
+- Owns vehicles and wants to rent them out
+- Needs tools to manage fleet and earnings
+
+### 3. Admin
+
+- Oversees platform operations
+- Manages users, vendors, and reports
+
+---
+
+## 5. User Roles & Permissions
+
+| Role | Permissions |
+| --- | --- |
+| Customer | Browse vehicles, book, pay, review, chat |
+| Vendor | Add/edit vehicles, view bookings |
+| Admin | Full system access, reports, promo codes |
+
+---
+
+## 6. Functional Requirements
+
+### 6.1 Authentication & User Management
+
+- Users can register and log in
+- JWT-based authentication
+- Role-based access control
+- Profile management
+
+**Database Tables:**
+
+- users
+- user_profiles
+
+---
+
+### 6.2 Vehicle Management
+
+- Vendors can add, edit, and delete vehicles
+- Upload multiple images per vehicle
+- Vehicles categorized by type
+- Filter by price, category, transmission, location
+
+**Database Tables:**
+
+- vehicles
+- vehicle_categories
+- vehicle_images
+
+---
+
+### 6.3 Booking System
+
+- Customers select date & time range
+- System validates availability
+- Automatic price calculation
+- Booking status lifecycle: Pending → Confirmed → Completed / Cancelled
+
+**Database Tables:**
+
+- bookings
+
+---
+
+### 6.4 Payment & Wallet System
+
+- Support Stripe, PayPal, Fawry, Wallet
+- Wallet balance tracking
+- Refund handling
+- Transaction history
+
+**Database Tables:**
+
+- payments
+- wallets
+- wallet_transactions
+
+---
+
+### 6.5 Promo Codes
+
+- Admin can create promo codes
+- Promo codes have validity period
+- Discount applied during booking
+
+**Database Tables:**
+
+- promo_codes
+
+---
+
+### 6.6 Reviews & Ratings
+
+- One review per completed booking
+- Ratings between 1–5
+- Reviews visible on vehicle pages
+
+**Database Tables:**
+
+- reviews
+
+---
+
+### 6.7 Chat Support
+
+- Users can start chat sessions
+- Messages stored per session
+- Bot and human support support
+
+**Database Tables:**
+
+- chat_sessions
+- chat_messages
+
+---
+
+### 6.8 Admin Panel & Reports
+
+- View platform statistics
+- Manage users and vendors
+- Generate system reports
+
+**Database Tables:**
+
+- admin_reports
+
+---
+
+## 7. Non-Functional Requirements
+
+### Performance
+
+- API response time < 500ms
+- Optimized queries with indexes
+
+### Security
+
+- Password hashing
+- JWT token expiration
+- HTTPS
+- Role-based permissions
+
+### Scalability
+
+- Modular Django apps
+- Stateless REST APIs
+
+---
+
+## 8. Technical Architecture
+
+### Frontend
+
+- React.js
+- React Router
+- Axios
+- State Management (Redux / Context API)
+- Tailwind CSS or Material UI
+
+### Backend
+
+- Django
+- Django REST Framework
+- JWT Authentication
+- Payment Gateway SDKs
+
+### Database
+
+- PostgreSQL
+- Relational schema (provided)
+
+---
+
+## 9. API Requirements (High-Level)
+
+### Authentication
+
+- POST /api/auth/register
+- POST /api/auth/login
+
+### Vehicles
+
+- GET /api/vehicles
+- POST /api/vehicles
+- PUT /api/vehicles/{id}
+
+### Bookings
+
+- POST /api/bookings
+- GET /api/bookings/my
+
+### Payments
+
+- POST /api/payments/create
+
+---
+
+## 10. Assumptions & Constraints
+
+### Assumptions
+
+- Users have internet access
+- Payment gateways are available
+
+### Constraints
+
+- Web-only platform (Phase 1)
+- Single country deployment initially
+
+---
+
+## 11. Success Metrics
+
+- Number of completed bookings
+- Payment success rate
+- User retention rate
+- Vendor adoption
+
+---
+
+## 12. Future Enhancements
+
+- Mobile apps
+- AI-based recommendations
+- Advanced analytics dashboard
+- Multi-language support
+
+---
+
+## 13. Approval
+
+This PRD defines the functional and technical requirements for the Vehicle Rental Management System and will be used as the baseline for design, development, and testing.
