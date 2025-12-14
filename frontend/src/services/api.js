@@ -45,7 +45,8 @@ export const authAPI = {
   register: (data) => api.post('/auth/register/', data),
   login: (data) => api.post('/auth/login/', data),
   getProfile: () => api.get('/auth/profile/'),
-  updateProfile: (data) => api.patch('/auth/profile/update/', data),
+  updateProfile: (data) => api.patch('/auth/profile/', data),
+  updateUserProfile: (data) => api.patch('/auth/profile/update/', data),
 };
 
 export const vehicleAPI = {
