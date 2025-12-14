@@ -100,7 +100,17 @@ export default function Navbar() {
               <>
                 <Link to="/bookings" className="block py-2 text-gray-700">My Bookings</Link>
                 <Link to="/chat" className="block py-2 text-gray-700">Chat Support</Link>
+                <Link to="/wallet" className="block py-2 text-gray-700">Wallet</Link>
                 <Link to="/profile" className="block py-2 text-gray-700">Profile</Link>
+                {user.role === 'vendor' && (
+                  <Link to="/vendor" className="block py-2 text-gray-700">Vendor Dashboard</Link>
+                )}
+                {user.role === 'admin' && (
+                  <>
+                    <Link to="/vendor" className="block py-2 text-gray-700">Vendor Dashboard</Link>
+                    <Link to="/admin" className="block py-2 text-gray-700">Admin Dashboard</Link>
+                  </>
+                )}
                 <button onClick={handleLogout} className="block py-2 text-gray-700">Logout</button>
               </>
             ) : (
