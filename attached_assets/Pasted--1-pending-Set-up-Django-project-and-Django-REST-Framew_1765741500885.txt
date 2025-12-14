@@ -1,0 +1,42 @@
+  1. [pending] Set up Django project and Django REST Framework.
+   2. [pending] Configure PostgreSQL database connection.
+   3. [pending] Implement User Authentication and Authorization (JWT-based).
+   4. [pending] Create users and user_profiles database tables (if not existing).
+   5. [pending] Develop API endpoints for user registration (POST /api/auth/register) and login (POST
+      /api/auth/login).
+   6. [pending] Implement profile management functionality.
+   7. [pending] Develop Vehicle Management backend: CRUD for vehicles, image uploads.
+   8. [pending] Create vehicles, vehicle_categories, vehicle_images database tables.
+   9. [pending] Implement filtering for vehicles (price, category, transmission, location).
+   10. [pending] Develop Booking System backend: availability validation, price calculation, status lifecycle.
+   11. [pending] Create bookings database table.
+   12. [pending] Develop API endpoints for creating bookings (POST /api/bookings) and retrieving user-specific
+       bookings (GET /api/bookings/my).
+   13. [pending] Implement Payment & Wallet System backend: integration with payment gateways (Stripe, PayPal, Fawry,
+       Wallet), wallet balance, refunds, transaction history.
+   14. [pending] Create payments, wallets, wallet_transactions database tables.
+   15. [pending] Implement Promo Codes backend: admin creation, validity period, discount application.
+   16. [pending] Create promo_codes database table.
+   17. [pending] Implement Reviews & Ratings backend: one review per booking, 1-5 ratings.
+   18. [pending] Create reviews database table.
+   19. [pending] Implement Chat Support backend: chat sessions, message storage, bot/human support (initial phase
+       could be basic logging).
+   20. [pending] Create chat_sessions, chat_messages database tables.
+   21. [pending] Develop Admin Panel backend: platform statistics, user/vendor management, report generation.
+   22. [pending] Create admin_reports database table.
+   23. [pending] Set up React.js project with React Router.
+   24. [pending] Implement user authentication UI (register, login).
+   25. [pending] Develop vehicle listing and search UI with filters.
+   26. [pending] Develop vehicle details page with image display and review section.
+   27. [pending] Implement booking UI: date/time selection, availability check, price display.
+   28. [pending] Implement payment UI with multiple options and wallet management.
+   29. [pending] Develop user profile management UI.
+   30. [pending] Develop admin dashboard UI for statistics, user/vendor management, and reports.
+   31. [pending] Integrate Axios for API calls.
+   32. [pending] Set up state management (Redux/Context API).
+   33. [pending] Apply styling (Tailwind CSS or Material UI).
+   34. [pending] Ensure API response time < 500ms (performance optimization).
+   35. [pending] Implement password hashing for security.
+   36. [pending] Implement JWT token expiration.
+   37. [pending] Ensure HTTPS is used for all communications.
+   38. [pending] Implement role-based permissions on both frontend and backend.
