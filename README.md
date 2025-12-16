@@ -5,7 +5,6 @@
 
 **Rentora** is a comprehensive full-stack vehicle rental platform designed to streamline the process of renting and managing vehicles. It connects customers seeking rentals with vendors offering a diverse fleet, all supported by a robust backend and a modern, responsive frontend.
 
-This project serves as both a **graduation project** and an **industry-style portfolio piece**, demonstrating best practices in software development.
 
 ## 🛠️ Tech Stack
 
