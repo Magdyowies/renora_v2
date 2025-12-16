@@ -3,6 +3,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils import timezone
 from django.db import transaction
+from django.conf import settings
+import stripe
+import os
 from .models import Payment, Wallet, WalletTransaction, PromoCode
 from .serializers import (
     PaymentSerializer, PaymentCreateSerializer, WalletSerializer,
@@ -167,3 +170,72 @@ class PromoCodeValidateView(APIView):
             'discount': float(discount),
             'final_amount': float(booking_amount - discount)
         })
+
+
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', settings.STRIPE_SECRET_KEY)
+WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', settings.STRIPE_WEBHOOK_SECRET)
+
+
+class StripeWebhookView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, format=None):
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+        event = None
+
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, WEBHOOK_SECRET
+            )
+        except ValueError as e:
+            # Invalid payload
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except stripe.error.SignatureVerificationError as e:
+            # Invalid signature
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Handle the event
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            # Fulfill the purchase...
+            print(f"Checkout session completed: {session['id']}")
+            # Retrieve booking_id from metadata or client_reference_id
+            booking_id = session.get('metadata', {}).get('booking_id')
+            payment_intent_id = session.get('payment_intent')
+
+            if booking_id:
+                try:
+                    with transaction.atomic():
+                        payment = Payment.objects.get(booking_id=booking_id, status='pending')
+                        payment.status = 'completed'
+                        payment.transaction_id = payment_intent_id if payment_intent_id else session['id']
+                        payment.method = 'stripe' # Ensure method is set to stripe
+                        payment.save()
+
+                        booking = payment.booking
+                        booking.status = 'confirmed'
+                        booking.save()
+                        print(f"Updated Payment {payment.id} and Booking {booking.id} to completed/confirmed.")
+                except Payment.DoesNotExist:
+                    print(f"Payment for booking ID {booking_id} not found or not pending.")
+                    # Potentially log this for manual review, but return 200 to Stripe
+                except Exception as e:
+                    print(f"Error processing webhook for booking ID {booking_id}: {e}")
+                    return Response({'error': 'Webhook processing failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        elif event['type'] == 'payment_intent.succeeded':
+            payment_intent = event['data']['object']
+            print(f"PaymentIntent was successful: {payment_intent['id']}")
+            # Can also handle this, but checkout.session.completed is often sufficient for initial payments
+
+        elif event['type'] == 'charge.succeeded':
+            charge = event['data']['object']
+            print(f"Charge succeeded: {charge['id']}")
+            # If using Charges API directly
+
+        else:
+            # Unexpected event type
+            print('Unhandled event type {}'.format(event['type']))
+
+        return Response({'success': True}, status=status.HTTP_200_OK)

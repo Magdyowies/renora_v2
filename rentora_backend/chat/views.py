@@ -14,17 +14,34 @@ except ImportError:
     OPENAI_AVAILABLE = False
 
 
-class ChatSessionListView(generics.ListAPIView):
-    serializer_class = ChatSessionListSerializer
+class ChatApiRoot(APIView):
+    """
+    Root endpoint for the Chat API.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        return Response({
+            "message": "Welcome to the Rentora Chat API.",
+            "endpoints": {
+                "list_create_sessions": "/api/chat/sessions/",
+                "session_detail": "/api/chat/sessions/<id>/",
+                "send_message": "/api/chat/sessions/<id>/send/",
+                "close_session": "/api/chat/sessions/<id>/close/",
+            }
+        })
+
+
+class ChatSessionListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return ChatSessionSerializer
+        return ChatSessionListSerializer
 
     def get_queryset(self):
         return ChatSession.objects.filter(user=self.request.user)
-
-
-class ChatSessionCreateView(generics.CreateAPIView):
-    serializer_class = ChatSessionSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         session = ChatSession.objects.create(user=self.request.user)
@@ -34,7 +51,7 @@ class ChatSessionCreateView(generics.CreateAPIView):
             content="Hello! I'm Rentora's AI assistant. How can I help you today? I can help you with:\n\n- Finding the perfect vehicle for your needs\n- Answering questions about our rental process\n- Providing information about pricing and availability\n- Helping with booking and payment questions"
         )
         return session
-
+    
     def create(self, request, *args, **kwargs):
         session = self.perform_create(None)
         return Response(ChatSessionSerializer(session).data, status=status.HTTP_201_CREATED)
@@ -128,7 +145,7 @@ Always encourage users to explore our vehicle selection and make bookings throug
             messages.append({"role": "user", "content": user_message})
 
             response = client.chat.completions.create(
-                model="gpt-5",
+                model="gpt-3.5-turbo",
                 messages=messages,
                 max_completion_tokens=500
             )
