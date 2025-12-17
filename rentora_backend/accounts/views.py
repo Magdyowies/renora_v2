@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserProfileSerializer,
-    ChangePasswordSerializer, UserSerializer
+    ChangePasswordSerializer, UserSerializer, AdminUserSerializer
 )
 from .models import User
 from accounts.models import UserProfile # Import UserProfile for ProfileView
@@ -53,10 +53,11 @@ class LoginView(generics.GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data
-        serializer = UserSerializer(user)
+        user = serializer.validated_data # This is now the authenticated user object
+        
         token = RefreshToken.for_user(user)
-        data = serializer.data
+        user_serializer = UserSerializer(user, context={'request': request}) # Pass context for profile serialization
+        data = user_serializer.data
         data["tokens"] = {"refresh": str(token), "access": str(token.access_token)}
         return Response(data, status=status.HTTP_200_OK)
 
@@ -109,3 +110,16 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
+
+
+class AdminUserListCreateView(generics.ListCreateAPIView):
+    queryset = User.objects.all().order_by('id')
+    serializer_class = AdminUserSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+class AdminUserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = AdminUserSerializer
+    permission_classes = [permissions.IsAdminUser]
+    lookup_field = 'id'

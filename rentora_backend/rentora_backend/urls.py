@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/reviews/', include('reviews.urls')),
     path('api/chat/', include('chat.urls')),
     path('api/', include('core.urls')),
+    path('api/admin/users/', include('accounts.admin_urls')),
 ]
 
 if settings.DEBUG:
