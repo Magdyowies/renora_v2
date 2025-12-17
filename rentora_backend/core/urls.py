@@ -11,6 +11,6 @@ urlpatterns = [
     path('admin/revenue-chart/', RevenueChartView.as_view(), name='revenue_chart'),
     path('admin/booking-chart/', BookingChartView.as_view(), name='booking_chart'),
     # path('admin/users/', AdminUserListView.as_view(), name='admin_users'), # Removed due to conflict
-    path('admin/vehicles/', AdminVehicleListView.as_view(), name='admin_vehicles'),
+    # path('admin/vehicles/', AdminVehicleListView.as_view(), name='admin_vehicles'), # Removed due to conflict
     path('admin/reports/', AdminReportListView.as_view(), name='admin_reports'),
 ]
