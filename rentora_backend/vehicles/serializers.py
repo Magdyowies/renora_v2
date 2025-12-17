@@ -64,3 +64,23 @@ class VehicleCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['vendor'] = self.context['request'].user
         return super().create(validated_data)
+
+
+class AdminVehicleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vehicle
+        fields = [
+            'id', 'name', 'brand', 'model', 'year', 'price_per_day',
+            'status', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']
+
+    def validate_year(self, value):
+        if not (1900 <= value <= 2100): # Reasonable range for vehicle years
+            raise serializers.ValidationError("Year must be between 1900 and 2100.")
+        return value
+
+    def validate_price_per_day(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Price per day must be a positive number.")
+        return value

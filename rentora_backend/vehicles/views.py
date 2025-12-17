@@ -1,12 +1,10 @@
-from rest_framework import generics, permissions, filters, status
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets # Import viewsets
 from .models import Vehicle, VehicleCategory, VehicleImage
 from .serializers import (
     VehicleListSerializer, VehicleDetailSerializer, VehicleCreateSerializer,
-    VehicleCategorySerializer, VehicleImageSerializer
+    VehicleCategorySerializer, VehicleImageSerializer, AdminVehicleSerializer # Import AdminVehicleSerializer
 )
 
 
@@ -122,3 +120,15 @@ class VehicleImageDeleteView(generics.DestroyAPIView):
 
     def get_object(self):
         return VehicleImage.objects.get(pk=self.kwargs['image_pk'], vehicle_id=self.kwargs['pk'])
+
+
+class AdminVehicleViewSet(viewsets.ModelViewSet):
+    queryset = Vehicle.objects.all().order_by('id')
+    serializer_class = AdminVehicleSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def perform_create(self, serializer):
+        # When creating a vehicle from the admin dashboard,
+        # the vendor should be the admin user creating it.
+        # This can be changed if vehicles can be created for other vendors directly by admin.
+        serializer.save(vendor=self.request.user)

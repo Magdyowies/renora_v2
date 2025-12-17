@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/chat/', include('chat.urls')),
     path('api/', include('core.urls')),
     path('api/admin/users/', include('accounts.admin_urls')),
+    path('api/admin/vehicles/', include('vehicles.admin_urls')),
 ]
 
 if settings.DEBUG:
