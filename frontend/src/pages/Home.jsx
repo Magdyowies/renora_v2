@@ -50,15 +50,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
       {/* Hero Section */}
-      <section
-        className="relative flex min-h-125 items-center text-white"
-        style={{
-          backgroundImage:
-            "url('/attached_assets/modern_suv_on_coastal_highway_at_sunset.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
+      <section className="relative flex min-h-125 items-center bg-[url(/hero-background.png)] bg-cover bg-center text-white">
         <div className="absolute inset-0 bg-neutral-900/60"></div>{" "}
         {/* Dark overlay */}
         <div className="relative mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
