@@ -10,7 +10,7 @@ urlpatterns = [
     path('admin/stats/', DashboardStatsView.as_view(), name='dashboard_stats'),
     path('admin/revenue-chart/', RevenueChartView.as_view(), name='revenue_chart'),
     path('admin/booking-chart/', BookingChartView.as_view(), name='booking_chart'),
-    path('admin/users/', AdminUserListView.as_view(), name='admin_users'),
+    # path('admin/users/', AdminUserListView.as_view(), name='admin_users'), # Removed due to conflict
     path('admin/vehicles/', AdminVehicleListView.as_view(), name='admin_vehicles'),
     path('admin/reports/', AdminReportListView.as_view(), name='admin_reports'),
 ]
