@@ -1,13 +1,24 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { vehicleAPI, reviewAPI } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { Car, Star, MapPin, Users, Fuel, Settings, Calendar, ChevronLeft, ChevronRight, DoorClosed } from 'lucide-react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import Button from '../components/Button';
-import Card from '../components/Card';
-import Input from '../components/Input';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { vehicleAPI, reviewAPI } from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import {
+  Car,
+  Star,
+  MapPin,
+  Users,
+  Fuel,
+  Settings,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  DoorClosed,
+} from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import Button from "../components/Button";
+import Card from "../components/Card";
+import Input from "../components/Input";
 
 export default function VehicleDetail() {
   const { id } = useParams();
@@ -33,7 +44,7 @@ export default function VehicleDetail() {
       setVehicle(vehicleRes.data);
       setReviews(reviewsRes.data);
     } catch (error) {
-      console.error('Error loading vehicle:', error);
+      console.error("Error loading vehicle:", error);
     } finally {
       setLoading(false);
     }
@@ -47,14 +58,14 @@ export default function VehicleDetail() {
 
   const handleBooking = () => {
     if (!user) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
     if (!pickupDate || !returnDate) {
-      alert('Please select pickup and return dates');
+      alert("Please select pickup and return dates");
       return;
     }
-    navigate('/booking', {
+    navigate("/booking", {
       state: {
         vehicle,
         pickupDate: pickupDate.toISOString(),
@@ -67,18 +78,20 @@ export default function VehicleDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="border-primary h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"></div>
       </div>
     );
   }
 
   if (!vehicle) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <Car className="h-16 w-16 text-neutral-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-neutral-900">Vehicle not found</h2>
+          <Car className="mx-auto mb-4 h-16 w-16 text-neutral-400" />
+          <h2 className="text-xl font-semibold text-neutral-900">
+            Vehicle not found
+          </h2>
         </div>
       </div>
     );
@@ -87,31 +100,39 @@ export default function VehicleDetail() {
   const images = vehicle.images || [];
 
   return (
-    <div className="bg-neutral-50 min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+    <div className="min-h-screen bg-neutral-50 py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
             {/* Image Gallery */}
             <Card className="mb-6 p-4">
-              <div className="relative h-96 bg-neutral-100 rounded-lg overflow-hidden">
+              <div className="relative h-96 overflow-hidden rounded-lg bg-neutral-100">
                 {images.length > 0 ? (
                   <>
                     <img
                       src={images[currentImage]?.image}
                       alt={vehicle.name}
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-cover"
                     />
                     {images.length > 1 && (
                       <>
                         <button
-                          onClick={() => setCurrentImage((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white transition-colors"
+                          onClick={() =>
+                            setCurrentImage((prev) =>
+                              prev > 0 ? prev - 1 : images.length - 1,
+                            )
+                          }
+                          className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/80 p-2 transition-colors hover:bg-white"
                         >
                           <ChevronLeft className="h-6 w-6 text-neutral-700" />
                         </button>
                         <button
-                          onClick={() => setCurrentImage((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white transition-colors"
+                          onClick={() =>
+                            setCurrentImage((prev) =>
+                              prev < images.length - 1 ? prev + 1 : 0,
+                            )
+                          }
+                          className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/80 p-2 transition-colors hover:bg-white"
                         >
                           <ChevronRight className="h-6 w-6 text-neutral-700" />
                         </button>
@@ -119,22 +140,28 @@ export default function VehicleDetail() {
                     )}
                   </>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
+                  <div className="flex h-full w-full items-center justify-center">
                     <Car className="h-24 w-24 text-neutral-300" />
                   </div>
                 )}
               </div>
               {images.length > 1 && (
-                <div className="flex gap-3 p-2 overflow-x-auto mt-4">
+                <div className="mt-4 flex gap-3 overflow-x-auto p-2">
                   {images.map((img, index) => (
                     <button
                       key={img.id}
                       onClick={() => setCurrentImage(index)}
-                      className={`w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border-2 ${
-                        currentImage === index ? 'border-primary' : 'border-neutral-200 hover:border-neutral-300'
+                      className={`h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border-2 ${
+                        currentImage === index
+                          ? "border-primary"
+                          : "border-neutral-200 hover:border-neutral-300"
                       } transition-colors`}
                     >
-                      <img src={img.image} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={img.image}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
                     </button>
                   ))}
                 </div>
@@ -142,64 +169,85 @@ export default function VehicleDetail() {
             </Card>
 
             {/* Vehicle Info */}
-            <Card className="p-6 mb-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+            <Card className="mb-6 p-6">
+              <div className="mb-4 flex flex-col items-start justify-between md:flex-row md:items-center">
                 <div>
-                  <h1 className="text-3xl font-bold text-neutral-900 mb-1">
+                  <h1 className="mb-1 text-3xl font-bold text-neutral-900">
                     {vehicle.brand} {vehicle.model}
                   </h1>
-                  <p className="text-neutral-600 text-lg">{vehicle.year}</p>
+                  <p className="text-lg text-neutral-600">{vehicle.year}</p>
                 </div>
                 {vehicle.rating > 0 && (
-                  <div className="flex items-center bg-primary-light/10 px-3 py-1 rounded-full text-sm">
-                    <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                    <span className="font-semibold text-neutral-800">{vehicle.rating}</span>
-                    <span className="text-neutral-500 ml-1">({vehicle.total_reviews} reviews)</span>
+                  <div className="bg-primary-light/10 flex items-center rounded-full px-3 py-1 text-sm">
+                    <Star className="mr-1 h-4 w-4 fill-current text-yellow-500" />
+                    <span className="font-semibold text-neutral-800">
+                      {vehicle.rating}
+                    </span>
+                    <span className="ml-1 text-neutral-500">
+                      ({vehicle.total_reviews} reviews)
+                    </span>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center text-neutral-600 mb-6 text-base">
-                <MapPin className="h-5 w-5 mr-2 text-neutral-400" />
+              <div className="mb-6 flex items-center text-base text-neutral-600">
+                <MapPin className="mr-2 h-5 w-5 text-neutral-400" />
                 {vehicle.location}
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-neutral-50 p-4 rounded-md text-center border border-neutral-200">
-                  <Settings className="h-6 w-6 mx-auto mb-2 text-primary" />
+              <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className="rounded-md border border-neutral-200 bg-neutral-50 p-4 text-center">
+                  <Settings className="text-primary mx-auto mb-2 h-6 w-6" />
                   <p className="text-sm text-neutral-600">Transmission</p>
-                  <p className="font-semibold capitalize text-neutral-800">{vehicle.transmission}</p>
+                  <p className="font-semibold text-neutral-800 capitalize">
+                    {vehicle.transmission}
+                  </p>
                 </div>
-                <div className="bg-neutral-50 p-4 rounded-md text-center border border-neutral-200">
-                  <Users className="h-6 w-6 mx-auto mb-2 text-primary" />
+                <div className="rounded-md border border-neutral-200 bg-neutral-50 p-4 text-center">
+                  <Users className="text-primary mx-auto mb-2 h-6 w-6" />
                   <p className="text-sm text-neutral-600">Seats</p>
-                  <p className="font-semibold text-neutral-800">{vehicle.seats}</p>
+                  <p className="font-semibold text-neutral-800">
+                    {vehicle.seats}
+                  </p>
                 </div>
-                <div className="bg-neutral-50 p-4 rounded-md text-center border border-neutral-200">
-                  <Fuel className="h-6 w-6 mx-auto mb-2 text-primary" />
+                <div className="rounded-md border border-neutral-200 bg-neutral-50 p-4 text-center">
+                  <Fuel className="text-primary mx-auto mb-2 h-6 w-6" />
                   <p className="text-sm text-neutral-600">Fuel Type</p>
-                  <p className="font-semibold capitalize text-neutral-800">{vehicle.fuel_type}</p>
+                  <p className="font-semibold text-neutral-800 capitalize">
+                    {vehicle.fuel_type}
+                  </p>
                 </div>
-                <div className="bg-neutral-50 p-4 rounded-md text-center border border-neutral-200">
-                  <DoorClosed className="h-6 w-6 mx-auto mb-2 text-primary" />
+                <div className="rounded-md border border-neutral-200 bg-neutral-50 p-4 text-center">
+                  <DoorClosed className="text-primary mx-auto mb-2 h-6 w-6" />
                   <p className="text-sm text-neutral-600">Doors</p>
-                  <p className="font-semibold text-neutral-800">{vehicle.doors}</p>
+                  <p className="font-semibold text-neutral-800">
+                    {vehicle.doors}
+                  </p>
                 </div>
               </div>
 
               {vehicle.description && (
                 <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-neutral-900 mb-3">Description</h2>
-                  <p className="text-neutral-700 leading-relaxed">{vehicle.description}</p>
+                  <h2 className="mb-3 text-xl font-semibold text-neutral-900">
+                    Description
+                  </h2>
+                  <p className="leading-relaxed text-neutral-700">
+                    {vehicle.description}
+                  </p>
                 </div>
               )}
 
               {vehicle.features && vehicle.features.length > 0 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-neutral-900 mb-3">Features</h2>
+                  <h2 className="mb-3 text-xl font-semibold text-neutral-900">
+                    Features
+                  </h2>
                   <div className="flex flex-wrap gap-2">
                     {vehicle.features.map((feature, index) => (
-                      <span key={index} className="bg-neutral-100 text-neutral-700 px-3 py-1 rounded-full text-sm font-medium">
+                      <span
+                        key={index}
+                        className="rounded-full bg-neutral-100 px-3 py-1 text-sm font-medium text-neutral-700"
+                      >
                         {feature}
                       </span>
                     ))}
@@ -211,25 +259,39 @@ export default function VehicleDetail() {
             {/* Reviews Section */}
             {reviews.length > 0 && (
               <Card className="p-6">
-                <h2 className="text-xl font-semibold text-neutral-900 mb-4">Reviews ({reviews.length})</h2>
+                <h2 className="mb-4 text-xl font-semibold text-neutral-900">
+                  Reviews ({reviews.length})
+                </h2>
                 <div className="space-y-6">
                   {reviews.map((review) => (
-                    <div key={review.id} className="border-b border-neutral-200 pb-6 last:border-b-0 last:pb-0">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-semibold text-neutral-800">{review.user_name || 'Anonymous'}</span>
+                    <div
+                      key={review.id}
+                      className="border-b border-neutral-200 pb-6 last:border-b-0 last:pb-0"
+                    >
+                      <div className="mb-2 flex items-start justify-between">
+                        <span className="font-semibold text-neutral-800">
+                          {review.user_name || "Anonymous"}
+                        </span>
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
                               className={`h-4 w-4 ${
-                                i < review.rating ? 'text-yellow-500 fill-current' : 'text-neutral-300'
+                                i < review.rating
+                                  ? "fill-current text-yellow-500"
+                                  : "text-neutral-300"
                               }`}
                             />
                           ))}
                         </div>
                       </div>
-                      <p className="text-neutral-700 leading-relaxed">{review.comment}</p>
-                      <p className="text-xs text-neutral-500 mt-2">Reviewed on {new Date(review.created_at).toLocaleDateString()}</p>
+                      <p className="leading-relaxed text-neutral-700">
+                        {review.comment}
+                      </p>
+                      <p className="mt-2 text-xs text-neutral-500">
+                        Reviewed on{" "}
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -239,15 +301,20 @@ export default function VehicleDetail() {
 
           {/* Booking / Price Summary */}
           <div className="lg:col-span-1">
-            <Card className="p-6 sticky top-24">
-              <div className="text-center mb-6">
-                <span className="text-4xl font-bold text-primary">${vehicle.price_per_day}</span>
+            <Card className="sticky top-24 p-6">
+              <div className="mb-6 text-center">
+                <span className="text-primary text-4xl font-bold">
+                  ${vehicle.price_per_day}
+                </span>
                 <span className="text-neutral-600">/day</span>
               </div>
 
-              <div className="space-y-4 mb-6">
+              <div className="mb-6 space-y-4">
                 <div>
-                  <label htmlFor="pickupDate" className="block text-sm font-medium text-neutral-900 mb-1">
+                  <label
+                    htmlFor="pickupDate"
+                    className="mb-1 block text-sm font-medium text-neutral-900"
+                  >
                     Pickup Date
                   </label>
                   <DatePicker
@@ -258,12 +325,15 @@ export default function VehicleDetail() {
                     startDate={pickupDate}
                     endDate={returnDate}
                     minDate={new Date()}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-light focus:border-primary transition-shadow text-sm"
+                    className="focus:ring-primary-light focus:border-primary w-full rounded-md border border-neutral-300 px-4 py-3 text-sm transition-shadow focus:ring-2"
                     placeholderText="Select pickup date"
                   />
                 </div>
                 <div>
-                  <label htmlFor="returnDate" className="block text-sm font-medium text-neutral-900 mb-1">
+                  <label
+                    htmlFor="returnDate"
+                    className="mb-1 block text-sm font-medium text-neutral-900"
+                  >
                     Return Date
                   </label>
                   <DatePicker
@@ -274,29 +344,35 @@ export default function VehicleDetail() {
                     startDate={pickupDate}
                     endDate={returnDate}
                     minDate={pickupDate || new Date()}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-light focus:border-primary transition-shadow text-sm"
+                    className="focus:ring-primary-light focus:border-primary w-full rounded-md border border-neutral-300 px-4 py-3 text-sm transition-shadow focus:ring-2"
                     placeholderText="Select return date"
                   />
                 </div>
               </div>
 
               {pickupDate && returnDate && (
-                <div className="border-t border-neutral-200 pt-4 mt-4">
-                  <div className="flex justify-between text-neutral-700 mb-2">
+                <div className="mt-4 border-t border-neutral-200 pt-4">
+                  <div className="mb-2 flex justify-between text-neutral-700">
                     <span>
-                      ${vehicle.price_per_day} x {Math.ceil((returnDate - pickupDate) / (1000 * 60 * 60 * 24))} days
+                      ${vehicle.price_per_day} x{" "}
+                      {Math.ceil(
+                        (returnDate - pickupDate) / (1000 * 60 * 60 * 24),
+                      )}{" "}
+                      days
                     </span>
                     <span>${calculateTotal().toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between font-bold text-xl text-neutral-900">
+                  <div className="flex justify-between text-xl font-bold text-neutral-900">
                     <span>Total</span>
-                    <span className="text-primary">${calculateTotal().toFixed(2)}</span>
+                    <span className="text-primary">
+                      ${calculateTotal().toFixed(2)}
+                    </span>
                   </div>
                 </div>
               )}
 
-              <Button onClick={handleBooking} className="w-full mt-6">
-                {user ? 'Book Now' : 'Sign in to Book'}
+              <Button onClick={handleBooking} className="mt-6 w-full">
+                {user ? "Book Now" : "Sign in to Book"}
               </Button>
             </Card>
           </div>
