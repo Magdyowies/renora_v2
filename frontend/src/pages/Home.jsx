@@ -1,73 +1,105 @@
-import { Link } from 'react-router-dom';
-import { Car, ShieldCheck, Wallet, Award } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { vehicleAPI } from '../services/api';
-import VehicleCard from '../components/VehicleCard';
-import Button from '../components/Button';
+import { Link } from "react-router-dom";
+import { ShieldCheck, Wallet, Award } from "lucide-react";
+import { useEffect, useState } from "react";
+import { vehicleAPI } from "../services/api";
+import VehicleCard from "../components/VehicleCard";
+import Button from "../components/Button";
 
 export default function Home() {
   const [featuredVehicles, setFeaturedVehicles] = useState([]);
 
   useEffect(() => {
+    const controller = new AbortController();
+
+    const loadFeaturedVehicles = async () => {
+      try {
+        const response = await vehicleAPI.getAll({ limit: 3 });
+        setFeaturedVehicles(
+          response.data.results
+            ? response.data.results.slice(0, 3)
+            : response.data.slice(0, 3),
+        );
+      } catch (error) {
+        console.error("Could not load featured vehicles:", error);
+      }
+    };
+
     loadFeaturedVehicles();
+
+    return () => controller.abort();
   }, []);
 
-  const loadFeaturedVehicles = async () => {
-    try {
-      const response = await vehicleAPI.getAll({ limit: 3 });
-      setFeaturedVehicles(response.data.results ? response.data.results.slice(0, 3) : response.data.slice(0, 3));
-    } catch (error) {
-      console.error('Could not load featured vehicles:', error);
-    }
-  };
-
   const features = [
-    { icon: Award, title: 'Premium Selection', description: 'Choose from a wide range of luxury cars, SUVs, and sedans.' },
-    { icon: ShieldCheck, title: 'Secure & Simple Booking', description: 'Your payments and data are always protected.' },
-    { icon: Wallet, title: 'Flexible Payments', description: 'Use your wallet or other methods for easy payment.' },
+    {
+      icon: Award,
+      title: "Premium Selection",
+      description: "Choose from a wide range of luxury cars, SUVs, and sedans.",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Secure & Simple Booking",
+      description: "Your payments and data are always protected.",
+    },
+    {
+      icon: Wallet,
+      title: "Flexible Payments",
+      description: "Use your wallet or other methods for easy payment.",
+    },
   ];
 
   return (
-    <div className="bg-neutral-50 min-h-screen text-neutral-900">
+    <div className="min-h-screen bg-neutral-50 text-neutral-900">
       {/* Hero Section */}
-      <section 
-        className="relative min-h-[500px] flex items-center text-white"
-        style={{ backgroundImage: "url('/attached_assets/modern_suv_on_coastal_highway_at_sunset.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}
-      >
-        <div className="absolute inset-0 bg-neutral-900/60"></div> {/* Dark overlay */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-20">
+      <section className="relative flex min-h-125 items-center bg-[url(/hero-background.png)] bg-cover bg-center text-white">
+        <div className="absolute inset-0 bg-neutral-900/60"></div>{" "}
+        {/* Dark overlay */}
+        <div className="relative mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
+            <h1 className="mb-4 text-4xl leading-tight font-extrabold md:text-5xl">
               Find Your Perfect Drive
             </h1>
-            <p className="text-lg md:text-xl text-neutral-200 mb-8">
-              Premium vehicle rentals for every journey. Experience the freedom of the open road with Rentora.
+            <p className="mb-8 text-lg text-neutral-200 md:text-xl">
+              Premium vehicle rentals for every journey. Experience the freedom
+              of the open road with Rentora.
             </p>
-            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4">
-              <Button as={Link} to="/vehicles">
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
+              <a
+                href="/vehicles"
+                className="inline-flex items-center justify-center rounded-md bg-[#FF5F00] px-6 py-3 text-center font-semibold text-white transition-colors duration-300 ease-in-out hover:bg-[#D45000] focus:ring-2 focus:ring-[#FF5F00] focus:ring-offset-2 focus:outline-none disabled:bg-neutral-300"
+              >
                 Browse Vehicles
-              </Button>
-              <Button as={Link} to="/register" variant="secondary">
+              </a>
+              <a
+                href="/register"
+                className="inline-flex items-center justify-center rounded-md bg-neutral-200 px-6 py-3 text-center font-semibold text-neutral-800 transition-colors duration-300 ease-in-out hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-400"
+              >
                 Get Started
-              </Button>
+              </a>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 sm:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-neutral-900">Why Choose Rentora?</h2>
+      <section className="bg-white py-16 sm:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-bold text-neutral-900">
+              Why Choose Rentora?
+            </h2>
           </div>
-          <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-3">
             {features.map((feature) => (
-              <div key={feature.title} className="text-center p-6 bg-neutral-50 rounded-lg shadow-sm">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                  <feature.icon className="h-8 w-8 text-primary" />
+              <div
+                key={feature.title}
+                className="rounded-lg bg-neutral-50 p-6 text-center shadow-sm"
+              >
+                <div className="bg-primary/10 mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                  <feature.icon className="text-primary h-8 w-8" />
                 </div>
-                <h3 className="text-xl font-semibold text-neutral-900 mb-2">{feature.title}</h3>
+                <h3 className="mb-2 text-xl font-semibold text-neutral-900">
+                  {feature.title}
+                </h3>
                 <p className="text-neutral-600">{feature.description}</p>
               </div>
             ))}
@@ -77,17 +109,19 @@ export default function Home() {
 
       {/* Featured Vehicles Section */}
       {featuredVehicles.length > 0 && (
-        <section className="py-16 sm:py-24 bg-neutral-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-neutral-900">Featured Vehicles</h2>
+        <section className="bg-neutral-50 py-16 sm:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-12 text-center">
+              <h2 className="text-3xl font-bold text-neutral-900">
+                Featured Vehicles
+              </h2>
             </div>
-            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {featuredVehicles.map((vehicle) => (
                 <VehicleCard key={vehicle.id} vehicle={vehicle} />
               ))}
             </div>
-            <div className="text-center mt-12">
+            <div className="mt-12 text-center">
               <Button as={Link} to="/vehicles" variant="secondary">
                 View All Vehicles
               </Button>
@@ -97,21 +131,25 @@ export default function Home() {
       )}
 
       {/* Call to Action Section */}
-      <section className="py-16 sm:py-24 bg-primary text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Hit the Road?</h2>
-          <p className="text-lg text-neutral-100 mb-8">
-            Join thousands of satisfied customers who trust Rentora for their vehicle rental needs.
+      <section className="bg-primary py-16 sm:py-24">
+        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+          <h2 className="mb-4 text-3xl font-bold">Ready to Hit the Road?</h2>
+          <p className="mb-8 text-lg">
+            Join thousands of satisfied customers who trust Rentora for their
+            vehicle rental needs.
           </p>
-          <Button as={Link} to="/register" variant="secondary" className="bg-white text-primary hover:bg-neutral-100">
+          <a
+            href="/register"
+            className="inline-flex items-center justify-center rounded-md bg-neutral-200 px-6 py-3 text-center font-semibold text-neutral-800 transition-colors duration-300 ease-in-out hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-400"
+          >
             Create Free Account
-          </Button>
+          </a>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-neutral-900 text-neutral-400 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <footer className="bg-neutral-900 py-12 text-neutral-400">
+        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
           <p>&copy; {new Date().getFullYear()} Rentora. All rights reserved.</p>
         </div>
       </footer>
