@@ -2,11 +2,12 @@ from django.urls import path
 from .views import (
     VehicleListView, VehicleDetailView, VehicleCreateView,
     VehicleCategoryListView, VendorVehiclesView,
-    VehicleImageUploadView, VehicleImageDeleteView
+    VehicleImageUploadView, VehicleImageDeleteView, AdminVehicleListView
 )
 
 urlpatterns = [
     path('', VehicleListView.as_view(), name='vehicle_list'),
+    path('list/', AdminVehicleListView.as_view(), name='admin_vehicle_list'),
     path('create/', VehicleCreateView.as_view(), name='vehicle_create'),
     path('<int:pk>/', VehicleDetailView.as_view(), name='vehicle_detail'),
     path('<int:pk>/images/', VehicleImageUploadView.as_view(), name='vehicle_image_upload'),

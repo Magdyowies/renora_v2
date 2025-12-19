@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserProfileSerializer,
-    ChangePasswordSerializer, UserSerializer, AdminUserSerializer
+    ChangePasswordSerializer, UserSerializer, AdminUserSerializer, UserListSerializer
 )
 from .models import User
 from accounts.models import UserProfile # Import UserProfile for ProfileView
@@ -108,7 +108,7 @@ class ChangePasswordView(generics.UpdateAPIView):
 
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserListSerializer
     permission_classes = [permissions.IsAdminUser]
 
 

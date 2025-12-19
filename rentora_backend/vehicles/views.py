@@ -7,8 +7,15 @@ from rest_framework.views import APIView
 from .models import Vehicle, VehicleCategory, VehicleImage
 from .serializers import (
     VehicleListSerializer, VehicleDetailSerializer, VehicleCreateSerializer,
-    VehicleCategorySerializer, VehicleImageSerializer, AdminVehicleSerializer # Import AdminVehicleSerializer
+    VehicleCategorySerializer, VehicleImageSerializer, AdminVehicleSerializer,
+    AdminVehicleListSerializer
 )
+
+
+class AdminVehicleListView(generics.ListAPIView):
+    queryset = Vehicle.objects.all()
+    serializer_class = AdminVehicleListSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 
 class IsVendorOrAdmin(permissions.BasePermission):

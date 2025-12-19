@@ -1,8 +1,25 @@
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Booking
-from .serializers import BookingSerializer, BookingCreateSerializer
+from .serializers import BookingSerializer, BookingCreateSerializer, AdminBookingSerializer
+
+
+class BookingAdminViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only ViewSet for full CRUD operations on Bookings.
+    """
+    queryset = Booking.objects.all().order_by('-created_at')
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_serializer_class(self):
+        """
+        Use AdminBookingSerializer for write actions (create, update),
+        and the standard BookingSerializer for read actions.
+        """
+        if self.action in ['create', 'update', 'partial_update']:
+            return AdminBookingSerializer
+        return BookingSerializer
 
 
 class BookingCreateView(generics.CreateAPIView):

@@ -1,12 +1,17 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
     BookingCreateView, MyBookingsView, BookingDetailView,
     BookingCancelView, VendorBookingsView, BookingStatusUpdateView,
-    AllBookingsView
+    AllBookingsView, BookingAdminViewSet
 )
 
+router = DefaultRouter()
+router.register(r'admin-crud', BookingAdminViewSet, basename='booking-admin')
+
 urlpatterns = [
-    path('', BookingCreateView.as_view(), name='booking_create'),
+    path('', include(router.urls)),
+    path('create/', BookingCreateView.as_view(), name='booking_create'),
     path('my/', MyBookingsView.as_view(), name='my_bookings'),
     path('vendor/', VendorBookingsView.as_view(), name='vendor_bookings'),
     path('all/', AllBookingsView.as_view(), name='all_bookings'),
