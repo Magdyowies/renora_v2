@@ -2,6 +2,12 @@ from rest_framework import serializers
 from .models import Vehicle, VehicleCategory, VehicleImage
 
 
+class AdminVehicleListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vehicle
+        fields = ['id', 'name']
+
+
 class VehicleImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = VehicleImage

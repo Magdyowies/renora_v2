@@ -7,6 +7,17 @@ from .models import UserProfile
 User = get_user_model()
 
 
+class UserListSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'full_name', 'username']
+
+    def get_full_name(self, obj):
+        return obj.get_full_name() or obj.username
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
