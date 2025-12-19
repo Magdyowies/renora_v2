@@ -1,383 +1,488 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { vehicleAPI, reviewAPI } from "../services/api";
-import { useAuth } from "../context/AuthContext";
-import {
-  Car,
-  Star,
-  MapPin,
-  Users,
-  Fuel,
-  Settings,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  DoorClosed,
-} from "lucide-react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import Button from "../components/Button";
-import Card from "../components/Card";
-import Input from "../components/Input";
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { Container, Row, Col, Card, Button, Badge, ListGroup } from 'react-bootstrap'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function VehicleDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [vehicle, setVehicle] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentImage, setCurrentImage] = useState(0);
-  const [pickupDate, setPickupDate] = useState(null);
-  const [returnDate, setReturnDate] = useState(null);
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { user } = useAuth()
 
-  useEffect(() => {
-    loadData();
-  }, [id]);
-
-  const loadData = async () => {
-    try {
-      const [vehicleRes, reviewsRes] = await Promise.all([
-        vehicleAPI.getById(id),
-        reviewAPI.getByVehicle(id),
-      ]);
-      setVehicle(vehicleRes.data);
-      setReviews(reviewsRes.data);
-    } catch (error) {
-      console.error("Error loading vehicle:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateTotal = () => {
-    if (!pickupDate || !returnDate || !vehicle) return 0;
-    const days = Math.ceil((returnDate - pickupDate) / (1000 * 60 * 60 * 24));
-    return days > 0 ? days * parseFloat(vehicle.price_per_day) : 0;
-  };
-
-  const handleBooking = () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    if (!pickupDate || !returnDate) {
-      alert("Please select pickup and return dates");
-      return;
-    }
-    navigate("/booking", {
-      state: {
-        vehicle,
-        pickupDate: pickupDate.toISOString(),
-        returnDate: returnDate.toISOString(),
-        totalDays: Math.ceil((returnDate - pickupDate) / (1000 * 60 * 60 * 24)),
-        totalPrice: calculateTotal(),
-      },
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="border-primary h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"></div>
-      </div>
-    );
+  // Expanded database with 15 vehicles
+  const vehicleDatabase = {
+    1: {
+      name: 'Tesla Model Y Performance',
+      category: 'Electric SUV',
+      price: 129,
+      images: [
+        'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800',
+        'https://images.unsplash.com/photo-1536700503339-1e4b06520771?w=800',
+        'https://images.unsplash.com/photo-1561580125-028ee3bd62eb?w=800',
+      ],
+      rating: 4.9,
+      reviews: 234,
+      year: 2024,
+      transmission: 'Automatic',
+      seats: 5,
+      luggage: 3,
+      fuelType: 'Electric',
+      range: '330 miles',
+      description: 'Experience the future of driving with the Tesla Model Y Performance. This all-electric SUV combines cutting-edge technology, exceptional performance, and zero emissions.',
+      features: ['Autopilot', 'Premium Audio', 'Glass Roof', 'Heated Seats', 'Navigation', 'Supercharging', 'USB-C Charging', 'Climate Control'],
+      available: true,
+    },
+    2: {
+      name: 'Porsche 911 Carrera',
+      category: 'Sports Car',
+      price: 350,
+      images: [
+        'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800',
+        'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=800',
+        'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800',
+      ],
+      rating: 5.0,
+      reviews: 189,
+      year: 2023,
+      transmission: 'Automatic PDK',
+      seats: 4,
+      luggage: 2,
+      fuelType: 'Petrol',
+      range: '380 miles',
+      description: 'The legendary Porsche 911 Carrera delivers an unmatched driving experience with its iconic design, powerful engine, and precision handling.',
+      features: ['Sport Chrono Package', 'BOSE Sound System', 'Adaptive Suspension', 'Sport Exhaust', 'Apple CarPlay', 'Leather Interior', 'Parking Sensors', 'Lane Assist'],
+      available: true,
+    },
+    3: {
+      name: 'Mercedes-Benz G-Class',
+      category: 'Luxury SUV',
+      price: 400,
+      images: [
+        'https://images.unsplash.com/photo-1617531653520-bd4f03619e05?w=800',
+        'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=800',
+        'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800',
+      ],
+      rating: 4.8,
+      reviews: 156,
+      year: 2023,
+      transmission: 'Automatic 9G-Tronic',
+      seats: 5,
+      luggage: 4,
+      fuelType: 'Petrol',
+      range: '410 miles',
+      description: 'The iconic Mercedes-Benz G-Class combines legendary off-road capability with luxurious comfort and cutting-edge technology.',
+      features: ['4MATIC All-Wheel Drive', 'Burmester Sound', 'Ambient Lighting', 'Panoramic Roof', 'Heated & Cooled Seats', '360° Camera', 'Off-Road Package', 'MBUX Infotainment'],
+      available: true,
+    },
+    4: {
+      name: 'BMW M4 Competition',
+      category: 'Sports Coupe',
+      price: 299,
+      images: [
+        'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800',
+        'https://images.unsplash.com/photo-1617531653497-8ff2c0e4e5a2?w=800',
+        'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800',
+      ],
+      rating: 4.9,
+      reviews: 201,
+      year: 2024,
+      transmission: 'Manual',
+      seats: 4,
+      luggage: 2,
+      fuelType: 'Petrol',
+      range: '340 miles',
+      description: 'The BMW M4 Competition is a high-performance machine that delivers breathtaking acceleration and precise handling.',
+      features: ['M Sport Differential', 'Carbon Fiber Roof', 'M Sport Brakes', 'Adaptive M Suspension', 'Harman Kardon Audio', 'Head-Up Display', 'Wireless Charging', 'M Drive Modes'],
+      available: true,
+    },
+    5: {
+      name: 'Range Rover Autobiography',
+      category: 'Luxury SUV',
+      price: 450,
+      images: [
+        'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800',
+        'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800',
+        'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800',
+      ],
+      rating: 4.7,
+      reviews: 178,
+      year: 2023,
+      transmission: 'Automatic',
+      seats: 5,
+      luggage: 5,
+      fuelType: 'Petrol',
+      range: '420 miles',
+      description: 'The Range Rover Autobiography represents the pinnacle of luxury and refinement, combining supreme comfort with exceptional capability.',
+      features: ['Terrain Response', 'Meridian Sound', 'Executive Seating', 'Dual Touchscreens', 'Air Suspension', 'Massage Seats', 'Gesture Control', 'Premium Leather'],
+      available: true,
+    },
+    6: {
+      name: 'Audi RS e-tron GT',
+      category: 'Electric Sedan',
+      price: 399,
+      images: [
+        'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=800',
+        'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=800',
+        'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=800',
+      ],
+      rating: 4.9,
+      reviews: 167,
+      year: 2024,
+      transmission: 'Automatic',
+      seats: 5,
+      luggage: 3,
+      fuelType: 'Electric',
+      range: '283 miles',
+      description: 'The Audi RS e-tron GT is a stunning electric grand tourer that combines breathtaking performance with Audi\'s legendary build quality.',
+      features: ['Quattro AWD', 'Bang & Olufsen Audio', 'Matrix LED Headlights', 'Sport Seats Plus', 'Virtual Cockpit', 'Fast Charging', 'Air Suspension', 'Launch Control'],
+      available: true,
+    },
+    7: {
+      name: 'Toyota Camry Hybrid',
+      category: 'Sedan',
+      price: 85,
+      images: [
+        'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800',
+        'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800',
+        'https://images.unsplash.com/photo-1623869675781-80aa31f92037?w=800',
+      ],
+      rating: 4.6,
+      reviews: 342,
+      year: 2024,
+      transmission: 'Automatic CVT',
+      seats: 5,
+      luggage: 3,
+      fuelType: 'Hybrid',
+      range: '686 miles',
+      description: 'Reliable and efficient hybrid sedan with spacious interior and advanced safety features. Perfect for daily commuting and long trips.',
+      features: ['Toyota Safety Sense', 'Apple CarPlay', 'Adaptive Cruise Control', 'Lane Departure Warning', 'Premium Audio', 'Heated Seats', 'Wireless Charging', 'Blind Spot Monitor'],
+      available: true,
+    },
+    8: {
+      name: 'Honda Accord Sport',
+      category: 'Sedan',
+      price: 75,
+      images: [
+        'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800',
+        'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800',
+        'https://images.unsplash.com/photo-1623869675781-80aa31f92037?w=800',
+      ],
+      rating: 4.7,
+      reviews: 298,
+      year: 2024,
+      transmission: 'Automatic',
+      seats: 5,
+      luggage: 3,
+      fuelType: 'Petrol',
+      range: '520 miles',
+      description: 'Spacious and comfortable sedan with excellent fuel economy, modern features, and Honda\'s legendary reliability.',
+      features: ['Honda Sensing', 'Sunroof', 'Heated Seats', 'Apple CarPlay', 'Android Auto', 'Dual-Zone Climate', 'Rear Camera', 'Keyless Entry'],
+      available: true,
+    },
+    9: {
+      name: 'Ford Mustang GT',
+      category: 'Sports Car',
+      price: 199,
+      images: [
+        'https://images.unsplash.com/photo-1584345604476-8ec5f12e42dd?w=800',
+        'https://images.unsplash.com/photo-1569144654912-28a8e3f450c2?w=800',
+        'https://images.unsplash.com/photo-1611859266238-4b98091d9d9b?w=800',
+      ],
+      rating: 4.8,
+      reviews: 215,
+      year: 2024,
+      transmission: 'Manual 6-Speed',
+      seats: 4,
+      luggage: 2,
+      fuelType: 'Petrol',
+      range: '380 miles',
+      description: 'Iconic American muscle car with powerful V8 engine, thrilling performance, and unmistakable road presence.',
+      features: ['5.0L V8 Engine', 'Performance Package', 'Sport Exhaust', 'Launch Control', 'Track Apps', 'Premium Audio', 'Recaro Seats', 'Digital Cluster'],
+      available: true,
+    },
+    10: {
+      name: 'Chevrolet Suburban',
+      category: 'Full-Size SUV',
+      price: 180,
+      images: [
+        'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800',
+        'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800',
+        'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800',
+      ],
+      rating: 4.5,
+      reviews: 187,
+      year: 2023,
+      transmission: 'Automatic 10-Speed',
+      seats: 8,
+      luggage: 6,
+      fuelType: 'Petrol',
+      range: '460 miles',
+      description: 'Full-size SUV perfect for large families. Maximum space, comfort, and towing capability for any adventure.',
+      features: ['8-Passenger Seating', 'Rear Entertainment', 'Tow Package', 'Power Liftgate', 'Wireless Charging', 'Safety Suite', 'Tri-Zone Climate', 'Bose Audio'],
+      available: true,
+    },
+    11: {
+      name: 'Nissan Leaf Plus',
+      category: 'Electric Hatchback',
+      price: 70,
+      images: [
+        'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800',
+        'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800',
+        'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800',
+      ],
+      rating: 4.4,
+      reviews: 256,
+      year: 2024,
+      transmission: 'Automatic',
+      seats: 5,
+      luggage: 3,
+      fuelType: 'Electric',
+      range: '226 miles',
+      description: 'Affordable electric vehicle with practical range, comfortable interior, and advanced driver assistance features.',
+      features: ['ProPILOT Assist', 'e-Pedal', 'Fast Charging', 'Climate Control', 'Apple CarPlay', 'Safety Shield 360', 'LED Headlights', 'Around View Monitor'],
+      available: true,
+    },
+    12: {
+      name: 'Volkswagen ID.4',
+      category: 'Electric SUV',
+      price: 95,
+      images: [
+        'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800',
+        'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800',
+        'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800',
+      ],
+      rating: 4.6,
+      reviews: 178,
+      year: 2024,
+      transmission: 'Automatic',
+      seats: 5,
+      luggage: 4,
+      fuelType: 'Electric',
+      range: '275 miles',
+      description: 'Modern electric SUV with spacious interior, intuitive technology, and impressive range for daily driving.',
+      features: ['AWD Available', 'Panoramic Sunroof', 'AR Head-Up Display', 'Fast Charging', 'Travel Assist', 'LED Matrix Lights', 'Wireless Charging', 'Voice Control'],
+      available: true,
+    },
+    13: {
+      name: 'Lexus ES 350',
+      category: 'Luxury Sedan',
+      price: 125,
+      images: [
+        'https://images.unsplash.com/photo-1623869675781-80aa31f92037?w=800',
+        'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800',
+        'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800',
+      ],
+      rating: 4.8,
+      reviews: 203,
+      year: 2024,
+      transmission: 'Automatic 8-Speed',
+      seats: 5,
+      luggage: 3,
+      fuelType: 'Petrol',
+      range: '480 miles',
+      description: 'Refined luxury sedan with exceptional comfort, reliability, and premium features. The epitome of Japanese luxury.',
+      features: ['Lexus Safety System+', 'Mark Levinson Audio', 'Heated/Cooled Seats', 'Panoramic View Monitor', 'Adaptive Cruise', 'Wireless Charging', 'Premium Leather', 'Ambient Lighting'],
+      available: true,
+    },
+    14: {
+      name: 'Mazda CX-5 Turbo',
+      category: 'Compact SUV',
+      price: 90,
+      images: [
+        'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800',
+        'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=800',
+        'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800',
+      ],
+      rating: 4.7,
+      reviews: 289,
+      year: 2024,
+      transmission: 'Automatic 6-Speed',
+      seats: 5,
+      luggage: 4,
+      fuelType: 'Petrol',
+      range: '440 miles',
+      description: 'Stylish compact SUV with sporty handling, premium interior, and excellent build quality.',
+      features: ['Skyactiv Technology', 'BOSE Audio', 'i-Activsense Safety', 'Leather Interior', 'Sunroof', 'Apple CarPlay', 'Head-Up Display', 'Adaptive Headlights'],
+      available: true,
+    },
+    15: {
+      name: 'Jeep Wrangler Rubicon',
+      category: 'Off-Road SUV',
+      price: 150,
+      images: [
+        'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800',
+        'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800',
+      ],
+      rating: 4.6,
+      reviews: 312,
+      year: 2024,
+      transmission: 'Automatic 8-Speed',
+      seats: 5,
+      luggage: 3,
+      fuelType: 'Petrol',
+      range: '380 miles',
+      description: 'Legendary off-road vehicle with removable top and doors. Built for adventure with unmatched capability.',
+      features: ['4x4 Rock-Trac', 'Removable Doors & Top', 'Skid Plates', 'Tow Hooks', 'Off-Road Pages', 'Locking Differentials', 'Alpine Audio', 'Uconnect System'],
+      available: true,
+    },
   }
+
+  const vehicle = vehicleDatabase[id]
 
   if (!vehicle) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <Car className="mx-auto mb-4 h-16 w-16 text-neutral-400" />
-          <h2 className="text-xl font-semibold text-neutral-900">
-            Vehicle not found
-          </h2>
-        </div>
-      </div>
-    );
+      <Container className="py-5 text-center">
+        <h1 className="display-4 mb-3">Vehicle Not Found</h1>
+        <p className="text-muted mb-4">The vehicle you're looking for doesn't exist.</p>
+        <Button as={Link} to="/search" variant="primary">
+          Browse All Vehicles
+        </Button>
+      </Container>
+    )
   }
 
-  const images = vehicle.images || [];
+  const handleBookNow = () => {
+    if (!user) {
+      // Redirect to sign in, then return here
+      navigate('/signin', { state: { from: `/vehicle/${id}` } })
+      return
+    }
+    // User is logged in, proceed to payment
+    navigate(`/payment/${id}`)
+  }
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            {/* Image Gallery */}
-            <Card className="mb-6 p-4">
-              <div className="relative h-96 overflow-hidden rounded-lg bg-neutral-100">
-                {images.length > 0 ? (
-                  <>
-                    <img
-                      src={images[currentImage]?.image}
-                      alt={vehicle.name}
-                      className="h-full w-full object-cover"
-                    />
-                    {images.length > 1 && (
-                      <>
-                        <button
-                          onClick={() =>
-                            setCurrentImage((prev) =>
-                              prev > 0 ? prev - 1 : images.length - 1,
-                            )
-                          }
-                          className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/80 p-2 transition-colors hover:bg-white"
-                        >
-                          <ChevronLeft className="h-6 w-6 text-neutral-700" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            setCurrentImage((prev) =>
-                              prev < images.length - 1 ? prev + 1 : 0,
-                            )
-                          }
-                          className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/80 p-2 transition-colors hover:bg-white"
-                        >
-                          <ChevronRight className="h-6 w-6 text-neutral-700" />
-                        </button>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <Car className="h-24 w-24 text-neutral-300" />
-                  </div>
-                )}
-              </div>
-              {images.length > 1 && (
-                <div className="mt-4 flex gap-3 overflow-x-auto p-2">
-                  {images.map((img, index) => (
-                    <button
-                      key={img.id}
-                      onClick={() => setCurrentImage(index)}
-                      className={`h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border-2 ${
-                        currentImage === index
-                          ? "border-primary"
-                          : "border-neutral-200 hover:border-neutral-300"
-                      } transition-colors`}
-                    >
-                      <img
-                        src={img.image}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </Card>
+    <Container className="py-5">
+      <Row>
+        {/* Image Gallery */}
+        <Col lg={8} className="mb-4">
+          <Card className="border-0 shadow-sm mb-3">
+            <Card.Img 
+              variant="top" 
+              src={vehicle.images[0]} 
+              style={{ height: '400px', objectFit: 'cover', borderRadius: '12px' }}
+              alt={vehicle.name}
+            />
+          </Card>
+          
+          <Row>
+            {vehicle.images.slice(1).map((image, index) => (
+              <Col key={index} xs={6} className="mb-3">
+                <Card className="border-0 shadow-sm">
+                  <Card.Img 
+                    src={image} 
+                    style={{ height: '200px', objectFit: 'cover', borderRadius: '12px' }}
+                    alt={`${vehicle.name} ${index + 2}`}
+                  />
+                </Card>
+              </Col>
+            ))}
+          </Row>
 
-            {/* Vehicle Info */}
-            <Card className="mb-6 p-6">
-              <div className="mb-4 flex flex-col items-start justify-between md:flex-row md:items-center">
-                <div>
-                  <h1 className="mb-1 text-3xl font-bold text-neutral-900">
-                    {vehicle.brand} {vehicle.model}
-                  </h1>
-                  <p className="text-lg text-neutral-600">{vehicle.year}</p>
-                </div>
-                {vehicle.rating > 0 && (
-                  <div className="bg-primary-light/10 flex items-center rounded-full px-3 py-1 text-sm">
-                    <Star className="mr-1 h-4 w-4 fill-current text-yellow-500" />
-                    <span className="font-semibold text-neutral-800">
-                      {vehicle.rating}
-                    </span>
-                    <span className="ml-1 text-neutral-500">
-                      ({vehicle.total_reviews} reviews)
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="mb-6 flex items-center text-base text-neutral-600">
-                <MapPin className="mr-2 h-5 w-5 text-neutral-400" />
-                {vehicle.location}
-              </div>
-
-              <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <div className="rounded-md border border-neutral-200 bg-neutral-50 p-4 text-center">
-                  <Settings className="text-primary mx-auto mb-2 h-6 w-6" />
-                  <p className="text-sm text-neutral-600">Transmission</p>
-                  <p className="font-semibold text-neutral-800 capitalize">
-                    {vehicle.transmission}
-                  </p>
-                </div>
-                <div className="rounded-md border border-neutral-200 bg-neutral-50 p-4 text-center">
-                  <Users className="text-primary mx-auto mb-2 h-6 w-6" />
-                  <p className="text-sm text-neutral-600">Seats</p>
-                  <p className="font-semibold text-neutral-800">
-                    {vehicle.seats}
-                  </p>
-                </div>
-                <div className="rounded-md border border-neutral-200 bg-neutral-50 p-4 text-center">
-                  <Fuel className="text-primary mx-auto mb-2 h-6 w-6" />
-                  <p className="text-sm text-neutral-600">Fuel Type</p>
-                  <p className="font-semibold text-neutral-800 capitalize">
-                    {vehicle.fuel_type}
-                  </p>
-                </div>
-                <div className="rounded-md border border-neutral-200 bg-neutral-50 p-4 text-center">
-                  <DoorClosed className="text-primary mx-auto mb-2 h-6 w-6" />
-                  <p className="text-sm text-neutral-600">Doors</p>
-                  <p className="font-semibold text-neutral-800">
-                    {vehicle.doors}
-                  </p>
-                </div>
-              </div>
-
-              {vehicle.description && (
-                <div className="mb-6">
-                  <h2 className="mb-3 text-xl font-semibold text-neutral-900">
-                    Description
-                  </h2>
-                  <p className="leading-relaxed text-neutral-700">
-                    {vehicle.description}
-                  </p>
-                </div>
-              )}
-
-              {vehicle.features && vehicle.features.length > 0 && (
-                <div>
-                  <h2 className="mb-3 text-xl font-semibold text-neutral-900">
-                    Features
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
-                    {vehicle.features.map((feature, index) => (
-                      <span
-                        key={index}
-                        className="rounded-full bg-neutral-100 px-3 py-1 text-sm font-medium text-neutral-700"
-                      >
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </Card>
-
-            {/* Reviews Section */}
-            {reviews.length > 0 && (
-              <Card className="p-6">
-                <h2 className="mb-4 text-xl font-semibold text-neutral-900">
-                  Reviews ({reviews.length})
-                </h2>
-                <div className="space-y-6">
-                  {reviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="border-b border-neutral-200 pb-6 last:border-b-0 last:pb-0"
-                    >
-                      <div className="mb-2 flex items-start justify-between">
-                        <span className="font-semibold text-neutral-800">
-                          {review.user_name || "Anonymous"}
-                        </span>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < review.rating
-                                  ? "fill-current text-yellow-500"
-                                  : "text-neutral-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="leading-relaxed text-neutral-700">
-                        {review.comment}
-                      </p>
-                      <p className="mt-2 text-xs text-neutral-500">
-                        Reviewed on{" "}
-                        {new Date(review.created_at).toLocaleDateString()}
-                      </p>
+          {/* Description */}
+          <Card className="border-0 shadow-sm mt-4">
+            <Card.Body className="p-4">
+              <h4 className="fw-bold mb-3">Description</h4>
+              <p className="text-muted">{vehicle.description}</p>
+              
+              <h5 className="fw-bold mb-3 mt-4">Features</h5>
+              <Row>
+                {vehicle.features.map((feature, index) => (
+                  <Col key={index} sm={6} md={4} className="mb-2">
+                    <div className="d-flex align-items-center">
+                      <span className="text-success me-2">✓</span>
+                      <span>{feature}</span>
                     </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-          </div>
+                  </Col>
+                ))}
+              </Row>
+            </Card.Body>
+          </Card>
+        </Col>
 
-          {/* Booking / Price Summary */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24 p-6">
-              <div className="mb-6 text-center">
-                <span className="text-primary text-4xl font-bold">
-                  ${vehicle.price_per_day}
-                </span>
-                <span className="text-neutral-600">/day</span>
+        {/* Booking Card */}
+        <Col lg={4}>
+          <Card className="border-0 shadow-sm sticky-top" style={{ top: '100px' }}>
+            <Card.Body className="p-4">
+              <div className="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h3 className="fw-bold mb-1">{vehicle.name}</h3>
+                  <Badge bg="secondary">{vehicle.category}</Badge>
+                  <div className="text-muted small mt-1">{vehicle.year}</div>
+                </div>
+                {vehicle.available ? (
+                  <Badge bg="success">Available</Badge>
+                ) : (
+                  <Badge bg="danger">Unavailable</Badge>
+                )}
               </div>
 
-              <div className="mb-6 space-y-4">
-                <div>
-                  <label
-                    htmlFor="pickupDate"
-                    className="mb-1 block text-sm font-medium text-neutral-900"
-                  >
-                    Pickup Date
-                  </label>
-                  <DatePicker
-                    id="pickupDate"
-                    selected={pickupDate}
-                    onChange={setPickupDate}
-                    selectsStart
-                    startDate={pickupDate}
-                    endDate={returnDate}
-                    minDate={new Date()}
-                    className="focus:ring-primary-light focus:border-primary w-full rounded-md border border-neutral-300 px-4 py-3 text-sm transition-shadow focus:ring-2"
-                    placeholderText="Select pickup date"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="returnDate"
-                    className="mb-1 block text-sm font-medium text-neutral-900"
-                  >
-                    Return Date
-                  </label>
-                  <DatePicker
-                    id="returnDate"
-                    selected={returnDate}
-                    onChange={setReturnDate}
-                    selectsEnd
-                    startDate={pickupDate}
-                    endDate={returnDate}
-                    minDate={pickupDate || new Date()}
-                    className="focus:ring-primary-light focus:border-primary w-full rounded-md border border-neutral-300 px-4 py-3 text-sm transition-shadow focus:ring-2"
-                    placeholderText="Select return date"
-                  />
-                </div>
+              <div className="d-flex align-items-center mb-4">
+                <div className="text-warning fs-5">⭐ {vehicle.rating}</div>
+                <span className="text-muted ms-2">({vehicle.reviews} reviews)</span>
               </div>
 
-              {pickupDate && returnDate && (
-                <div className="mt-4 border-t border-neutral-200 pt-4">
-                  <div className="mb-2 flex justify-between text-neutral-700">
-                    <span>
-                      ${vehicle.price_per_day} x{" "}
-                      {Math.ceil(
-                        (returnDate - pickupDate) / (1000 * 60 * 60 * 24),
-                      )}{" "}
-                      days
-                    </span>
-                    <span>${calculateTotal().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-xl font-bold text-neutral-900">
-                    <span>Total</span>
-                    <span className="text-primary">
-                      ${calculateTotal().toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              )}
+              <div className="price-tag mb-4">
+                ${vehicle.price}<small className="text-muted fs-6">/day</small>
+              </div>
 
-              <Button onClick={handleBooking} className="mt-6 w-full">
-                {user ? "Book Now" : "Sign in to Book"}
+              <ListGroup variant="flush" className="mb-4">
+                <ListGroup.Item className="d-flex justify-content-between px-0">
+                  <span>🚗 Transmission</span>
+                  <span className="fw-semibold">{vehicle.transmission}</span>
+                </ListGroup.Item>
+                <ListGroup.Item className="d-flex justify-content-between px-0">
+                  <span>👥 Seats</span>
+                  <span className="fw-semibold">{vehicle.seats} people</span>
+                </ListGroup.Item>
+                <ListGroup.Item className="d-flex justify-content-between px-0">
+                  <span>🧳 Luggage</span>
+                  <span className="fw-semibold">{vehicle.luggage} bags</span>
+                </ListGroup.Item>
+                <ListGroup.Item className="d-flex justify-content-between px-0">
+                  <span>⚡ Fuel Type</span>
+                  <span className="fw-semibold">{vehicle.fuelType}</span>
+                </ListGroup.Item>
+                {vehicle.range && (
+                  <ListGroup.Item className="d-flex justify-content-between px-0">
+                    <span>🔋 Range</span>
+                    <span className="fw-semibold">{vehicle.range}</span>
+                  </ListGroup.Item>
+                )}
+              </ListGroup>
+
+              <Button 
+                onClick={handleBookNow}
+                variant="primary" 
+                size="lg" 
+                className="w-100 mb-3"
+                disabled={!vehicle.available}
+              >
+                {!user ? '🔒 Sign In to Book' : vehicle.available ? 'Book Now' : 'Unavailable'}
               </Button>
-            </Card>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+              
+              {!user && (
+                <p className="text-muted small text-center mb-3">
+                  You need to sign in to make a booking
+                </p>
+              )}
+              
+              <Button 
+                variant="outline-primary" 
+                size="lg" 
+                className="w-100"
+              >
+                Contact Us
+              </Button>
+
+              <div className="bg-light p-3 rounded mt-3">
+                <p className="small mb-1 fw-semibold">📞 Need help?</p>
+                <p className="small text-muted mb-0">
+                  Call us at <a href="tel:+1234567890" className="text-decoration-none">+1 (234) 567-890</a>
+                </p>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
+  )
 }

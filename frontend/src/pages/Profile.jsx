@@ -1,307 +1,264 @@
-import { useState, useEffect } from "react";
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Edit2,
-  Save,
-  X,
-} from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { authAPI } from "../services/api";
+import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap'
+import { useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+import toast from 'react-hot-toast'
 
 export default function Profile() {
-  const { user, loadUser } = useAuth();
-  const [editing, setEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
+  const { user, updateUser } = useAuth()
+  const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    country: "",
-  });
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: '+1 (555) 123-4567',
+    address: '123 Main Street',
+    city: 'San Francisco',
+    zipCode: '94102',
+    country: 'United States'
+  })
 
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        first_name: user.first_name || "",
-        last_name: user.last_name || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        address: user.profile?.address || "",
-        city: user.profile?.city || "",
-        country: user.profile?.country || "",
-      });
-    }
-  }, [user]);
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    
+    // Update user context
+    updateUser({ name: formData.name, email: formData.email })
+    
+    toast.success('Profile updated successfully!')
+    setIsEditing(false)
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage({ type: "", text: "" });
-
-    try {
-      await authAPI.updateProfile({
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-        phone: formData.phone,
-      });
-
-      await authAPI.updateUserProfile({
-        address: formData.address,
-        city: formData.city,
-        country: formData.country,
-      });
-
-      await loadUser();
-      setEditing(false);
-      setMessage({ type: "success", text: "Profile updated successfully!" });
-    } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.error || "Failed to update profile",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const cancelEdit = () => {
-    setEditing(false);
-    if (user) {
-      setFormData({
-        first_name: user.first_name || "",
-        last_name: user.last_name || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        address: user.profile?.address || "",
-        city: user.profile?.city || "",
-        country: user.profile?.country || "",
-      });
-    }
-  };
-
-  const inputClasses =
-    "w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-light focus:border-primary transition-shadow text-sm";
-  const labelClasses = "block text-sm font-medium text-neutral-700 mb-1";
-
-  const InfoField = ({ icon: Icon, value }) => (
-    <div className="flex items-center rounded-md bg-neutral-50 px-4 py-2 text-sm">
-      <Icon className="mr-3 h-5 w-5 text-neutral-400" />
-      <span className="text-neutral-800">{value || "Not set"}</span>
-    </div>
-  );
-
-  if (!user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="border-primary h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"></div>
-      </div>
-    );
+  const handleCancel = () => {
+    setFormData({
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: '+1 (555) 123-4567',
+      address: '123 Main Street',
+      city: 'San Francisco',
+      zipCode: '94102',
+      country: 'United States'
+    })
+    setIsEditing(false)
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-12">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900">My Profile</h1>
-        </header>
-
-        <div className="rounded-lg bg-white shadow-md">
-          {/* Profile Header */}
-          <div className="rounded-t-lg bg-gradient-to-r from-neutral-800 to-neutral-900 p-6">
-            <div className="flex items-center">
-              <div className="bg-primary flex h-20 w-20 items-center justify-center rounded-full">
-                <User className="h-10 w-10 text-white" />
-              </div>
-              <div className="ml-5 text-white">
-                <h2 className="text-2xl font-bold">
-                  {user.first_name} {user.last_name || user.username}
-                </h2>
-                <p className="text-neutral-300 capitalize">{user.role}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Profile Content */}
-          <div className="p-6">
-            {message.text && (
-              <div
-                className={`mb-6 rounded-md p-4 text-sm ${message.type === "success" ? "border border-green-200 bg-green-50 text-green-800" : "border border-red-200 bg-red-50 text-red-800"}`}
-              >
-                {message.text}
-              </div>
-            )}
-
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-neutral-800">
-                Profile Information
-              </h3>
-              {!editing ? (
-                <button
-                  onClick={() => setEditing(true)}
-                  className="text-primary hover:text-primary-dark flex items-center text-sm font-semibold"
-                >
-                  <Edit2 className="mr-1 h-4 w-4" />
-                  Edit
-                </button>
-              ) : (
-                <button
-                  onClick={cancelEdit}
-                  className="flex items-center text-sm font-semibold text-neutral-600 hover:text-neutral-800"
-                >
-                  <X className="mr-1 h-4 w-4" />
-                  Cancel
-                </button>
-              )}
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
-                {/* Fields */}
-                <div>
-                  <label className={labelClasses}>First Name</label>
-                  {editing ? (
-                    <input
-                      type="text"
-                      value={formData.first_name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, first_name: e.target.value })
-                      }
-                      className={inputClasses}
-                    />
-                  ) : (
-                    <InfoField icon={User} value={user.first_name} />
-                  )}
-                </div>
-                <div>
-                  <label className={labelClasses}>Last Name</label>
-                  {editing ? (
-                    <input
-                      type="text"
-                      value={formData.last_name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, last_name: e.target.value })
-                      }
-                      className={inputClasses}
-                    />
-                  ) : (
-                    <InfoField icon={User} value={user.last_name} />
-                  )}
-                </div>
-                <div>
-                  <label className={labelClasses}>Email</label>
-                  {editing ? (
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      className={inputClasses}
-                    />
-                  ) : (
-                    <InfoField icon={Mail} value={user.email} />
-                  )}
-                </div>
-                <div>
-                  <label className={labelClasses}>Phone</label>
-                  {editing ? (
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                      className={inputClasses}
-                    />
-                  ) : (
-                    <InfoField icon={Phone} value={user.phone} />
-                  )}
-                </div>
-                <div>
-                  <label className={labelClasses}>City</label>
-                  {editing ? (
-                    <input
-                      type="text"
-                      value={formData.city}
-                      onChange={(e) =>
-                        setFormData({ ...formData, city: e.target.value })
-                      }
-                      className={inputClasses}
-                    />
-                  ) : (
-                    <InfoField icon={MapPin} value={user.profile?.city} />
-                  )}
-                </div>
-                <div>
-                  <label className={labelClasses}>Country</label>
-                  {editing ? (
-                    <input
-                      type="text"
-                      value={formData.country}
-                      onChange={(e) =>
-                        setFormData({ ...formData, country: e.target.value })
-                      }
-                      className={inputClasses}
-                    />
-                  ) : (
-                    <InfoField icon={MapPin} value={user.profile?.country} />
-                  )}
-                </div>
-                <div className="md:col-span-2">
-                  <label className={labelClasses}>Address</label>
-                  {editing ? (
-                    <textarea
-                      value={formData.address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
-                      rows="2"
-                      className={inputClasses}
-                    />
-                  ) : (
-                    <InfoField icon={MapPin} value={user.profile?.address} />
-                  )}
-                </div>
-              </div>
-
-              {editing && (
-                <div className="mt-6 text-right">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="bg-primary hover:bg-primary-dark inline-flex items-center rounded-md px-6 py-2 font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {loading ? (
-                      <div className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    ) : (
-                      <Save className="mr-2 h-5 w-5" />
-                    )}
-                    {loading ? "Saving..." : "Save Changes"}
-                  </button>
-                </div>
-              )}
-            </form>
-
-            <div className="mt-6 border-t border-neutral-200 pt-6">
-              <div className="flex items-center text-sm text-neutral-500">
-                <Calendar className="mr-2 h-4 w-4" />
-                <span>
-                  Member since {new Date(user.created_at).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          </div>
+    <div style={{ backgroundColor: '#fafafa', minHeight: '100vh', paddingTop: '2rem', paddingBottom: '4rem' }}>
+      <Container>
+        <div className="mb-4">
+          <h1 className="fw-bold mb-2">My Profile</h1>
+          <p className="text-muted">Manage your account information</p>
         </div>
-      </div>
+
+        <Row>
+          {/* Profile Card */}
+          <Col lg={4} className="mb-4">
+            <Card className="border-0 shadow-sm">
+              <Card.Body className="p-4 text-center">
+                <div 
+                  style={{
+                    width: '120px',
+                    height: '120px',
+                    background: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '3rem',
+                    margin: '0 auto 1.5rem',
+                    color: 'white',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <h4 className="fw-bold mb-1">{user?.name || 'User'}</h4>
+                <p className="text-muted mb-3">{user?.email}</p>
+                <div className="d-flex gap-2 justify-content-center mb-3">
+                  {user?.isAdmin && (
+                    <span className="badge bg-warning text-dark">Admin</span>
+                  )}
+                  <span className="badge bg-success">Verified</span>
+                </div>
+                <Button 
+                  variant="outline-primary" 
+                  className="w-100"
+                  onClick={() => setIsEditing(!isEditing)}
+                >
+                  {isEditing ? 'Cancel Edit' : 'Edit Profile'}
+                </Button>
+              </Card.Body>
+            </Card>
+
+            {/* Stats Card */}
+            <Card className="border-0 shadow-sm mt-3">
+              <Card.Body className="p-4">
+                <h6 className="fw-bold mb-3">Account Stats</h6>
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">Total Bookings</span>
+                    <span className="fw-bold">3</span>
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">Total Spent</span>
+                    <span className="fw-bold">$3,190</span>
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">Loyalty Points</span>
+                    <span className="fw-bold text-primary">1,250 pts</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">Member Since</span>
+                    <span className="fw-bold">Jan 2024</span>
+                  </div>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          {/* Information Form */}
+          <Col lg={8}>
+            <Card className="border-0 shadow-sm">
+              <Card.Body className="p-4">
+                <h5 className="fw-bold mb-4">Personal Information</h5>
+                <Form onSubmit={handleSubmit}>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Full Name</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          disabled={!isEditing}
+                          style={{ borderRadius: '10px' }}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Email Address</Form.Label>
+                        <Form.Control
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          disabled={!isEditing}
+                          style={{ borderRadius: '10px' }}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Phone Number</Form.Label>
+                        <Form.Control
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                          disabled={!isEditing}
+                          style={{ borderRadius: '10px' }}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Country</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={formData.country}
+                          onChange={(e) => setFormData({...formData, country: e.target.value})}
+                          disabled={!isEditing}
+                          style={{ borderRadius: '10px' }}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label className="fw-semibold">Street Address</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formData.address}
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      disabled={!isEditing}
+                      style={{ borderRadius: '10px' }}
+                    />
+                  </Form.Group>
+
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">City</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={formData.city}
+                          onChange={(e) => setFormData({...formData, city: e.target.value})}
+                          disabled={!isEditing}
+                          style={{ borderRadius: '10px' }}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Zip Code</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={formData.zipCode}
+                          onChange={(e) => setFormData({...formData, zipCode: e.target.value})}
+                          disabled={!isEditing}
+                          style={{ borderRadius: '10px' }}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  {isEditing && (
+                    <div className="d-flex gap-2 mt-4">
+                      <Button 
+                        type="submit" 
+                        variant="primary"
+                        style={{ borderRadius: '10px' }}
+                      >
+                        Save Changes
+                      </Button>
+                      <Button 
+                        type="button"
+                        variant="outline-secondary"
+                        onClick={handleCancel}
+                        style={{ borderRadius: '10px' }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </Form>
+              </Card.Body>
+            </Card>
+
+            {/* Security Card */}
+            <Card className="border-0 shadow-sm mt-4">
+              <Card.Body className="p-4">
+                <h5 className="fw-bold mb-4">Security</h5>
+                <div className="mb-3">
+                  <Button variant="outline-primary" style={{ borderRadius: '10px' }}>
+                    Change Password
+                  </Button>
+                </div>
+                <div>
+                  <Button variant="outline-danger" style={{ borderRadius: '10px' }}>
+                    Delete Account
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
     </div>
-  );
+  )
 }

@@ -1,158 +1,197 @@
-import { Link } from "react-router-dom";
-import { ShieldCheck, Wallet, Award } from "lucide-react";
-import { useEffect, useState } from "react";
-import { vehicleAPI } from "../services/api";
-import VehicleCard from "../components/VehicleCard";
-import Button from "../components/Button";
+import { Link } from 'react-router-dom'
+import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Home() {
-  const [featuredVehicles, setFeaturedVehicles] = useState([]);
+  const { isAuthenticated } = useAuth()
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const loadFeaturedVehicles = async () => {
-      try {
-        const response = await vehicleAPI.getAll({ limit: 3 });
-        setFeaturedVehicles(
-          response.data.results
-            ? response.data.results.slice(0, 3)
-            : response.data.slice(0, 3),
-        );
-      } catch (error) {
-        console.error("Could not load featured vehicles:", error);
-      }
-    };
-
-    loadFeaturedVehicles();
-
-    return () => controller.abort();
-  }, []);
+  const featuredVehicles = [
+    {
+      id: 1,
+      name: 'Tesla Model 3',
+      category: 'Electric',
+      price: 89,
+      image: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400',
+      rating: 4.8,
+      available: true
+    },
+    {
+      id: 2,
+      name: 'BMW X5',
+      category: 'SUV',
+      price: 120,
+      image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400',
+      rating: 4.9,
+      available: true
+    },
+    {
+      id: 3,
+      name: 'Mercedes C-Class',
+      category: 'Sedan',
+      price: 95,
+      image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400',
+      rating: 4.7,
+      available: false
+    },
+  ]
 
   const features = [
-    {
-      icon: Award,
-      title: "Premium Selection",
-      description: "Choose from a wide range of luxury cars, SUVs, and sedans.",
-    },
-    {
-      icon: ShieldCheck,
-      title: "Secure & Simple Booking",
-      description: "Your payments and data are always protected.",
-    },
-    {
-      icon: Wallet,
-      title: "Flexible Payments",
-      description: "Use your wallet or other methods for easy payment.",
-    },
-  ];
+    { icon: '🚗', title: 'Wide Selection', description: 'Choose from hundreds of vehicles' },
+    { icon: '💰', title: 'Best Prices', description: 'Competitive rates guaranteed' },
+    { icon: '📱', title: 'Easy Booking', description: 'Book in minutes online' },
+    { icon: '🛡️', title: 'Fully Insured', description: 'All vehicles are fully covered' },
+  ]
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900">
-      {/* Hero Section */}
-      <section className="relative flex min-h-125 items-center bg-[url(/hero-background.png)] bg-cover bg-center text-white">
-        <div className="absolute inset-0 bg-neutral-900/60"></div>{" "}
-        {/* Dark overlay */}
-        <div className="relative mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-            <h1 className="mb-4 text-4xl leading-tight font-extrabold md:text-5xl">
-              Find Your Perfect Drive
+    <div>
+      {/* Hero Section with Background Image */}
+      <div className="hero-section-image">
+        <div className="hero-overlay">
+          <Container className="text-center py-5">
+            <h1 className="display-2 fw-bold text-white mb-4" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
+              Find your drive.
             </h1>
-            <p className="mb-8 text-lg text-neutral-200 md:text-xl">
-              Premium vehicle rentals for every journey. Experience the freedom
-              of the open road with Rentora.
+            <p className="lead text-white mb-5" style={{ fontSize: '1.3rem', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
+              Premium vehicle rentals for every journey. From city streets<br />
+              to coastal roads, experience the freedom of the open road.
             </p>
-            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-              <a
-                href="/vehicles"
-                className="inline-flex items-center justify-center rounded-md bg-[#FF5F00] px-6 py-3 text-center font-semibold text-white transition-colors duration-300 ease-in-out hover:bg-[#D45000] focus:ring-2 focus:ring-[#FF5F00] focus:ring-offset-2 focus:outline-none disabled:bg-neutral-300"
-              >
-                Browse Vehicles
-              </a>
-              <a
-                href="/register"
-                className="inline-flex items-center justify-center rounded-md bg-neutral-200 px-6 py-3 text-center font-semibold text-neutral-800 transition-colors duration-300 ease-in-out hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-400"
-              >
-                Get Started
-              </a>
-            </div>
-          </div>
+            
+            {/* Search Box */}
+            <Row className="justify-content-center">
+              <Col lg={10}>
+                <Card className="shadow-lg border-0">
+                  <Card.Body className="p-4">
+                    <Row className="g-3 align-items-end">
+                      <Col md={4}>
+                        <label className="form-label text-start d-block fw-semibold">Pick-up Location</label>
+                        <input 
+                          type="text" 
+                          className="form-control form-control-lg" 
+                          placeholder="Enter location"
+                        />
+                      </Col>
+                      <Col md={4}>
+                        <label className="form-label text-start d-block fw-semibold">Pick-up Date</label>
+                        <input 
+                          type="date" 
+                          className="form-control form-control-lg"
+                        />
+                      </Col>
+                      <Col md={4}>
+                        <Button 
+                          as={Link}
+                          to="/search"
+                          variant="primary" 
+                          size="lg" 
+                          className="w-100"
+                          style={{ padding: '0.75rem' }}
+                        >
+                          Search Vehicles
+                        </Button>
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          </Container>
         </div>
-      </section>
+      </div>
 
       {/* Features Section */}
-      <section className="bg-white py-16 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-neutral-900">
-              Why Choose Rentora?
-            </h2>
-          </div>
-          <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-3">
-            {features.map((feature) => (
-              <div
-                key={feature.title}
-                className="rounded-lg bg-neutral-50 p-6 text-center shadow-sm"
-              >
-                <div className="bg-primary/10 mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full">
-                  <feature.icon className="text-primary h-8 w-8" />
+      <Container className="my-5 py-5">
+        <h2 className="text-center mb-5 fw-bold">Why Choose Renato?</h2>
+        <Row>
+          {features.map((feature, index) => (
+            <Col key={index} md={3} sm={6} className="mb-4">
+              <Card className="text-center border-0 h-100 shadow-sm card-hover">
+                <Card.Body className="p-4">
+                  <Card.Title className="fw-bold">{feature.title}</Card.Title>
+                  <Card.Text className="text-muted">{feature.description}</Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
+
+      {/* Featured Vehicles */}
+      <Container className="my-5 py-5">
+        <div className="d-flex justify-content-between align-items-center mb-5">
+          <h2 className="fw-bold mb-0">Featured Vehicles</h2>
+          <Button as={Link} to="/search" variant="outline-primary">
+            View All
+          </Button>
+        </div>
+        <Row>
+          {featuredVehicles.map((vehicle) => (
+            <Col key={vehicle.id} md={4} className="mb-4">
+              <Card className="vehicle-card shadow-sm h-100">
+                <div className="position-relative">
+                  <Card.Img 
+                    variant="top" 
+                    src={vehicle.image} 
+                    className="vehicle-image"
+                    alt={vehicle.name}
+                  />
+                  {vehicle.available ? (
+                    <Badge bg="success" className="position-absolute top-0 end-0 m-3">
+                      Available
+                    </Badge>
+                  ) : (
+                    <Badge bg="danger" className="position-absolute top-0 end-0 m-3">
+                      Unavailable
+                    </Badge>
+                  )}
                 </div>
-                <h3 className="mb-2 text-xl font-semibold text-neutral-900">
-                  {feature.title}
-                </h3>
-                <p className="text-neutral-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+                <Card.Body>
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <Card.Title className="mb-1">{vehicle.name}</Card.Title>
+                      <Badge bg="secondary" className="mb-2">{vehicle.category}</Badge>
+                    </div>
+                    <div className="text-end">
+                      <div className="text-warning">⭐ {vehicle.rating}</div>
+                    </div>
+                  </div>
+                  <div className="d-flex justify-content-between align-items-center mt-3">
+                    <div className="price-tag">
+                      ${vehicle.price}<small className="text-muted fs-6">/day</small>
+                    </div>
+                    <Button 
+                      as={Link} 
+                      to={`/vehicle/${vehicle.id}`} 
+                      variant="primary"
+                      disabled={!vehicle.available}
+                    >
+                      {vehicle.available ? 'View Details' : 'Unavailable'}
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
 
-      {/* Featured Vehicles Section */}
-      {featuredVehicles.length > 0 && (
-        <section className="bg-neutral-50 py-16 sm:py-24">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-12 text-center">
-              <h2 className="text-3xl font-bold text-neutral-900">
-                Featured Vehicles
-              </h2>
-            </div>
-            <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {featuredVehicles.map((vehicle) => (
-                <VehicleCard key={vehicle.id} vehicle={vehicle} />
-              ))}
-            </div>
-            <div className="mt-12 text-center">
-              <Button as={Link} to="/vehicles" variant="secondary">
-                View All Vehicles
-              </Button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Call to Action Section */}
-      <section className="bg-primary py-16 sm:py-24">
-        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="mb-4 text-3xl font-bold">Ready to Hit the Road?</h2>
-          <p className="mb-8 text-lg">
-            Join thousands of satisfied customers who trust Rentora for their
-            vehicle rental needs.
+      {/* CTA Section - Only show Sign Up if not logged in */}
+      <div className="bg-primary text-white py-5">
+        <Container className="text-center">
+          <h2 className="display-5 fw-bold mb-4">Ready to Hit the Road?</h2>
+          <p className="lead mb-4">
+            {isAuthenticated ? 'Browse our collection and book your perfect ride' : 'Join thousands of satisfied customers'}
           </p>
-          <a
-            href="/register"
-            className="inline-flex items-center justify-center rounded-md bg-neutral-200 px-6 py-3 text-center font-semibold text-neutral-800 transition-colors duration-300 ease-in-out hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-400"
-          >
-            Create Free Account
-          </a>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-neutral-900 py-12 text-neutral-400">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-          <p>&copy; {new Date().getFullYear()} Rentora. All rights reserved.</p>
-        </div>
-      </footer>
+          {isAuthenticated ? (
+            <Button as={Link} to="/search" size="lg" variant="light" className="px-5 py-3">
+              Browse Vehicles
+            </Button>
+          ) : (
+            <Button as={Link} to="/signup" size="lg" variant="light" className="px-5 py-3">
+              Sign Up Now
+            </Button>
+          )}
+        </Container>
+      </div>
     </div>
-  );
+  )
 }

@@ -1,0 +1,121 @@
+# Renato - Vehicle Rental Platform
+# Requirements and Dependencies
+
+## System Requirements
+- Node.js: >= 18.0.0
+- npm: >= 9.0.0 (or yarn >= 1.22.0)
+- Git: >= 2.30.0
+
+## Core Dependencies
+
+### React & Framework
+- react: ^18.3.1
+- react-dom: ^18.3.1
+- vite: ^5.1.0
+- @vitejs/plugin-react: ^4.2.1
+
+### Routing
+- react-router-dom: ^6.22.0
+
+### UI Framework
+- bootstrap: ^5.3.2
+- react-bootstrap: ^2.10.0
+
+### State Management
+- @tanstack/react-query: ^5.20.0
+
+### Form Handling
+- react-hook-form: ^7.49.0
+- @hookform/resolvers: ^3.3.4
+- zod: ^3.22.4
+
+### HTTP Client
+- axios: ^1.6.5
+
+### Utilities
+- date-fns: ^3.3.0
+- react-hot-toast: ^2.4.1
+
+## Development Dependencies
+
+### TypeScript
+- typescript: ^5.3.3
+- @types/react: ^18.3.1
+- @types/react-dom: ^18.3.0
+
+### Code Quality
+- eslint: ^8.56.0
+- @typescript-eslint/eslint-plugin: ^6.21.0
+- @typescript-eslint/parser: ^6.21.0
+- eslint-plugin-react-hooks: ^4.6.0
+- eslint-plugin-react-refresh: ^0.4.5
+
+## Optional Backend Dependencies (if using backend)
+
+### Server
+- express: ^4.18.2
+- @types/express: ^4.17.21
+
+### Database
+- pg: ^8.11.3
+- drizzle-orm: ^0.29.3
+- drizzle-kit: ^0.20.10
+
+### Authentication
+- bcryptjs: ^2.4.3
+- jsonwebtoken: ^9.0.2
+- @types/bcryptjs: ^2.4.6
+- @types/jsonwebtoken: ^9.0.5
+
+### Session Management
+- express-session: ^1.17.3
+- connect-pg-simple: ^9.0.1
+
+## Environment Variables Required
+- VITE_API_URL
+- DATABASE_URL (optional)
+- VITE_STRIPE_PUBLIC_KEY (optional)
+
+## Browser Support
+- Chrome: >= 90
+- Firefox: >= 88
+- Safari: >= 14
+- Edge: >= 90
+
+## IDE Recommendations
+- Visual Studio Code: >= 1.80.0
+- WebStorm: >= 2023.1
+
+## Recommended VS Code Extensions
+- ESLint
+- Prettier - Code formatter
+- ES7+ React/Redux/React-Native snippets
+- TypeScript and JavaScript Language Features
+- Auto Rename Tag
+- Path Intellisense
+- Bootstrap 5 Quick Snippets
+
+## Operating System Support
+- Windows: 10+
+- macOS: 11+
+- Linux: Ubuntu 20.04+, Debian 11+, Fedora 35+
+
+## Package Manager Options
+- npm (recommended)
+- yarn
+- pnpm
+
+## Additional Tools
+- Git for version control
+- PostgreSQL 14+ (if using database)
+- Docker (optional, for containerization)
+
+## Installation Size
+- node_modules: ~350 MB
+- Production build: ~500 KB (gzipped)
+
+## Notes
+- All version numbers are minimum requirements
+- Using the latest stable versions is recommended
+- Some dependencies may have peer dependencies
+- Check package.json for exact versions being used
