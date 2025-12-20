@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { Container, Row, Col, Card, Button, Badge, ListGroup } from 'react-bootstrap'
+import { Container, Row, Col, Card, Form, Button, Badge, ListGroup } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
 import { useState, useEffect } from 'react' // Import useState and useEffect
 import bookingsService from '../services/bookingsService' // Import bookingsService
@@ -22,111 +22,90 @@ export default function VehicleDetail() {
   const [error, setError] = useState(null)
 
   const [bookingProcessing, setBookingProcessing] = useState(false);
-
-
-
-
+  const [pickupDate, setPickupDate] = useState('');
+  const [returnDate, setReturnDate] = useState('');
+  const [promoCode, setPromoCode] = useState(''); // New state for promo code
 
   useEffect(() => {
-
+    setBookingProcessing(false); // Ensure bookingProcessing is false on mount
     const fetchVehicleDetails = async () => {
-
       try {
-
-        // This endpoint is assumed to exist. If not, this will fail.
-
         const response = await api.get(`/vehicles/${id}/`); 
-
         setVehicle(response.data);
-
-            } catch (err) {
-
-              if (err.response?.status === 404) {
-
-                toast.error('Vehicle not found.');
-
-                navigate('/search'); // Redirect to search page
-
-              } else {
-
-                setError('Failed to fetch vehicle details.');
-
-                console.error('Fetch vehicle details error:', err);
-
-              }
-
-            } finally {
-
-              setLoading(false);
-
-            }
-
-          };
-
+      } catch (err) {
+        if (err.response?.status === 404) {
+          toast.error('Vehicle not found.');
+          navigate('/search');
+        } else {
+          setError('Failed to fetch vehicle details.');
+          console.error('Fetch vehicle details error:', err);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchVehicleDetails();
-
-  }, [id]);
-
-
+  }, [id]); // Removed navigate from dependencies
 
   const handleBookNow = async () => {
-
     if (!user) {
-
       navigate('/login', { state: { from: `/vehicle/${id}` } });
-
       return;
-
     }
 
+    if (!pickupDate || !returnDate) {
+      toast.error("Please select both a pickup and return date.");
+      return;
+    }
 
+    if (new Date(pickupDate) >= new Date(returnDate)) {
+      toast.error("Return date must be after the pickup date.");
+      return;
+    }
 
     setBookingProcessing(true);
-
     try {
-
-      // These dates are placeholders. A real implementation would use a date picker.
-
       const bookingData = {
-
         vehicle: id,
-
-        start_date: new Date().toISOString().split('T')[0],
-
-        end_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-
+        pickup_date: pickupDate,
+        return_date: returnDate,
+        pickup_location: vehicle.location || "Default Pickup Location",
+        return_location: vehicle.location || "Default Return Location",
+        promo_code: promoCode,
       };
 
       const newBooking = await bookingsService.createBooking(bookingData);
-
       
-
       if (newBooking && newBooking.id) {
-
-        toast.success('Booking created! Proceed to payment.');
-
-        navigate(`/payment/${newBooking.id}`);
-
+        toast.success('Booking created successfully!');
+        navigate(`/booking-success/${newBooking.id}`); // Navigate to new success page
       } else {
-
         throw new Error("Booking creation did not return a valid ID.");
-
       }
 
-
-
     } catch (err) {
-
-      toast.error('Failed to create booking. Please try again.');
-
-      console.error('Create booking error:', err);
-
+      let errorMessage = 'Booking failed. Please try again.';
+      if (err.response && err.response.data) {
+        const errorData = err.response.data;
+        if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else {
+          const fieldErrors = Object.keys(errorData)
+            .filter(key => Array.isArray(errorData[key]) && errorData[key].length > 0)
+            .map(key => `${key.replace(/_/g, ' ')}: ${errorData[key].join(', ')}`)
+            .join('; ');
+          if (fieldErrors) {
+            errorMessage = `Booking failed: ${fieldErrors}`;
+          } else {
+            errorMessage = 'Booking failed due to an unexpected server error.';
+          }
+        }
+      }
+      toast.error(errorMessage);
+      console.error('Create booking error:', err); // Keep for internal debugging
     } finally {
-
       setBookingProcessing(false);
-
     }
-
   };
 
   
@@ -235,7 +214,7 @@ export default function VehicleDetail() {
 
               <Row>
 
-                {vehicle.features?.map((feature, index) => (
+                {Array.isArray(vehicle.features) && vehicle.features.map((feature, index) => (
 
                   <Col key={index} sm={6} md={4} className="mb-2">
 
@@ -281,7 +260,7 @@ export default function VehicleDetail() {
 
                 </div>
 
-                {vehicle.is_available ? (
+                {vehicle.status === 'available' ? (
 
                   <Badge bg="success">Available</Badge>
 
@@ -314,125 +293,52 @@ export default function VehicleDetail() {
 
 
               <ListGroup variant="flush" className="mb-4">
-
-                <ListGroup.Item className="d-flex justify-content-between px-0">
-
-                  <span>🚗 Transmission</span>
-
-                  <span className="fw-semibold">{vehicle.transmission}</span>
-
+                <ListGroup.Item className="px-0">
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">Pickup Date</Form.Label>
+                    <Form.Control 
+                      type="date" 
+                      value={pickupDate}
+                      onChange={(e) => setPickupDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]} // Prevent past dates
+                    />
+                  </Form.Group>
                 </ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between px-0">
-
-                  <span>👥 Seats</span>
-
-                  <span className="fw-semibold">{vehicle.seats} people</span>
-
+                <ListGroup.Item className="px-0">
+                  <Form.Group>
+                    <Form.Label className="fw-semibold">Return Date</Form.Label>
+                    <Form.Control 
+                      type="date" 
+                      value={returnDate}
+                      onChange={(e) => setReturnDate(e.target.value)}
+                      min={pickupDate || new Date().toISOString().split('T')[0]} // Prevent dates before pickup
+                    />
+                  </Form.Group>
                 </ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between px-0">
-
-                  <span>🧳 Luggage</span>
-
-                  <span className="fw-semibold">{vehicle.luggage_capacity} bags</span>
-
+                <ListGroup.Item className="px-0">
+                  <Form.Group className="mt-3">
+                    <Form.Label className="fw-semibold">Promo Code (Optional)</Form.Label>
+                    <Form.Control 
+                      type="text" 
+                      placeholder="Enter promo code"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                    />
+                  </Form.Group>
                 </ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between px-0">
-
-                  <span>⚡ Fuel Type</span>
-
-                  <span className="fw-semibold">{vehicle.fuel_type}</span>
-
-                </ListGroup.Item>
-
-                {vehicle.range && (
-
-                  <ListGroup.Item className="d-flex justify-content-between px-0">
-
-                    <span>🔋 Range</span>
-
-                    <span className="fw-semibold">{vehicle.range}</span>
-
-                  </ListGroup.Item>
-
-                )}
-
               </ListGroup>
-
-
-
               <Button 
-
-                onClick={handleBookNow}
-
                 variant="primary" 
-
-                size="lg" 
-
-                className="w-100 mb-3"
-
-                disabled={!vehicle.is_available || bookingProcessing}
-
+                className="w-100" 
+                onClick={handleBookNow} 
+                disabled={bookingProcessing} // Disable if processing or not available
               >
-
-                {bookingProcessing ? 'Processing...' : (!user ? '🔒 Sign In to Book' : vehicle.is_available ? 'Book Now & Pay' : 'Unavailable')}
-
+                {bookingProcessing ? 'Processing...' : 'Book Now'}
               </Button>
-
-              
-
-              {!user && (
-
-                <p className="text-muted small text-center mb-3">
-
-                  You need to sign in to make a booking
-
-                </p>
-
-              )}
-
-              
-
-              <Button 
-
-                variant="outline-primary" 
-
-                size="lg" 
-
-                className="w-100"
-
-              >
-
-                Contact Us
-
-              </Button>
-
-
-
-              <div className="bg-light p-3 rounded mt-3">
-
-                <p className="small mb-1 fw-semibold">📞 Need help?</p>
-
-                <p className="small text-muted mb-0">
-
-                  Call us at <a href="tel:+1234567890" className="text-decoration-none">+1 (234) 567-890</a>
-
-                </p>
-
-              </div>
-
             </Card.Body>
-
           </Card>
-
         </Col>
-
       </Row>
-
     </Container>
-
-  )
-
+  );
 }

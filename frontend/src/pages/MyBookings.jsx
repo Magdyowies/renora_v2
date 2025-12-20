@@ -9,7 +9,7 @@ import { format } from 'date-fns'
 
 
 export default function MyBookings() {
-  const { user, isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth()
 
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)

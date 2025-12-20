@@ -1,5 +1,6 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { Container, Row, Col, Card, Form, Button, ListGroup, Alert, Badge } from 'react-bootstrap'
+import { Container, Row, Col, Card, Form, Button, ListGroup, Alert, Badge, Spinner } from 'react-bootstrap'
+import { format } from 'date-fns'; // Import format for date display
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -58,8 +59,7 @@ export default function Payment() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-    reset, // Add reset to clear form if needed
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(paymentSchema),
   })
@@ -74,7 +74,7 @@ export default function Payment() {
     }
 
     if (!bookingId) {
-      setBookingError('No booking ID provided. Please go back and select a booking.');
+      setBookingError('Invalid payment link. Please check your bookings or try again.'); // Updated message
       setBookingLoading(false);
       return;
     }
@@ -116,7 +116,7 @@ export default function Payment() {
   // =========================
   // Payment Submission
   // =========================
-  const onSubmit = async (data) => {
+  const onSubmit = async () => {
     setPaymentProcessing(true);
     setPaymentSuccess(false);
 
@@ -178,14 +178,32 @@ export default function Payment() {
     return <LoadingSpinner />;
   }
 
-  if (bookingError) {
+  // Handle missing bookingId first if not loading and bookingId is not present
+  if (!bookingId) {
     return (
       <Container className="py-5 text-center">
         <Alert variant="danger" className="mb-4">
           <Alert.Heading>Error!</Alert.Heading>
-          <p>{bookingError}</p>
+          <p>Invalid payment link. Please check your bookings.</p>
           <hr />
-          <Button onClick={() => navigate(-1)} variant="danger">Go Back</Button>
+          <Button as={Link} to="/my-bookings" variant="primary">
+            Go to My Bookings
+          </Button>
+        </Alert>
+      </Container>
+    );
+  }
+
+  if (bookingError || !bookingDetails) {
+    return (
+      <Container className="py-5 text-center">
+        <Alert variant="danger" className="mb-4">
+          <Alert.Heading>Error!</Alert.Heading>
+          <p>{bookingError || 'Failed to load booking details.'}</p>
+          <hr />
+          <Button onClick={() => navigate('/my-bookings')} variant="primary">
+            Go to My Bookings
+          </Button>
         </Alert>
       </Container>
     );
@@ -396,7 +414,7 @@ export default function Payment() {
                       variant="primary" 
                       size="lg" 
                       className="w-100 mt-3"
-                      disabled={paymentProcessing || !bookingDetails}
+                      disabled={paymentProcessing || !bookingDetails || bookingDetails.status !== 'pending'}
                     >
                       {paymentProcessing ? 'Processing...' : `Pay $${finalDisplayAmount?.toFixed(2)}`}
                     </Button>
@@ -419,10 +437,10 @@ export default function Payment() {
                 <Card.Body className="p-4">
                   <h5 className="fw-bold mb-4">Order Summary</h5>
                   
-                  {bookingDetails.vehicle.image && (
+                  {bookingDetails.vehicle.primary_image?.image && ( // Changed from .image to .primary_image?.image
                     <div className="mb-3">
                       <img 
-                        src={bookingDetails.vehicle.image} 
+                        src={bookingDetails.vehicle.primary_image.image} 
                         alt={bookingDetails.vehicle.name}
                         style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
                       />
@@ -431,11 +449,31 @@ export default function Payment() {
                   
                   <div className="mb-3">
                     <h6 className="fw-bold">{bookingDetails.vehicle.name}</h6>
-                    <Badge bg="secondary">{bookingDetails.vehicle.category}</Badge>
+                    <Badge bg="secondary">{bookingDetails.vehicle.category_name}</Badge> {/* Changed .category to .category_name */}
                     <p className="text-muted small mb-2 mt-2">Booking ID: {bookingDetails.id}</p>
                   </div>
 
                   <ListGroup variant="flush" className="mb-3">
+                    <ListGroup.Item className="d-flex justify-content-between px-0">
+                      <span>Vehicle Daily Rate</span>
+                      <span className="fw-semibold">${bookingDetails.vehicle.daily_rate?.toFixed(2)}</span>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="d-flex justify-content-between px-0">
+                      <span>Pickup Date</span>
+                      <span className="fw-semibold">{format(new Date(bookingDetails.pickup_date), 'MMM dd, yyyy')}</span>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="d-flex justify-content-between px-0">
+                      <span>Return Date</span>
+                      <span className="fw-semibold">{format(new Date(bookingDetails.return_date), 'MMM dd, yyyy')}</span>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="d-flex justify-content-between px-0">
+                      <span>Total Days</span>
+                      <span className="fw-semibold">{bookingDetails.total_days} days</span>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="d-flex justify-content-between px-0">
+                      <span>Booking Status</span>
+                      <Badge bg="info" className="text-capitalize">{bookingDetails.status}</Badge>
+                    </ListGroup.Item>
                     <ListGroup.Item className="d-flex justify-content-between px-0">
                       <span>Booking Total</span>
                       <span className="fw-semibold">${bookingDetails.total_price?.toFixed(2)}</span>

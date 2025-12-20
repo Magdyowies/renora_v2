@@ -1,11 +1,10 @@
 import { Container, Row, Col, Card, Table, Badge, Button, Modal } from 'react-bootstrap'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useState, useEffect } from 'react'
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [bookings, setBookings] = useState([])
@@ -36,7 +35,7 @@ export default function Dashboard() {
   }, [user])
 
   // Calculate stats
-  const totalVehicles = 15
+
   const activeBookings = bookings.filter(b => b.status === 'active').length
   const upcomingBookings = bookings.filter(b => {
     const startDate = new Date(b.startDate)

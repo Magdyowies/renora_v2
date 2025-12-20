@@ -91,7 +91,7 @@ export default function Chatbot() {
   }
 
   const handleQuickReply = (reply) => {
-    const cleanReply = reply.replace(/[🚗💰📍🎫❓]/g, '').trim()
+    const cleanReply = reply.replace(/[🚗💰📍🎫❓]/gu, '').trim()
     handleSend(cleanReply)
   }
 

@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
-import { useAuth } from '../context/AuthContext'
+
 
 const signUpSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),

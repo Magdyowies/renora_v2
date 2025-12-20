@@ -39,7 +39,8 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         if pickup_date >= return_date:
             raise serializers.ValidationError("Return date must be after pickup date")
 
-        if pickup_date < timezone.now().date():
+        # Ensure comparison is between two date objects
+        if pickup_date.date() < timezone.now().date():
             raise serializers.ValidationError("Pickup date cannot be in the past")
 
         vehicle = attrs.get('vehicle')
@@ -78,8 +79,8 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 promo = PromoCode.objects.get(
                     code=promo_code_str,
                     is_active=True,
-                    valid_from__lte=timezone.now(),
-                    valid_until__gte=timezone.now()
+                    valid_from__lte=timezone.now().date(),
+                    valid_until__gte=timezone.now().date()
                 )
                 if promo.min_booking_amount <= base_price:
                     if promo.discount_type == 'percentage':

@@ -1,88 +1,14 @@
 import { Link } from 'react-router-dom'
 import { Container, Row, Col, Card, Form, Button, Badge } from 'react-bootstrap'
-import { useState, useEffect } from 'react' // Import useEffect
-import vehiclesService from '../services/vehiclesService' // Import vehiclesService
-import LoadingSpinner from '../components/LoadingSpinner' // Import LoadingSpinner
-import toast from 'react-hot-toast' // Import toast
+import { useState, useEffect } from 'react'
+import vehiclesService from '../services/vehiclesService'
+import LoadingSpinner from '../components/LoadingSpinner'
+import toast from 'react-hot-toast'
 
 export default function Search() {
-  const allVehicles = [
-    {
-      id: 1, name: 'Tesla Model Y Performance', year: 2024, category: 'SUV', price: 129,
-      image: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600',
-      rating: 4.9, seats: 5, transmission: 'Automatic', fuel: 'Electric', available: true
-    },
-    {
-      id: 2, name: 'Porsche 911 Carrera', year: 2023, category: 'Sports', price: 350,
-      image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600',
-      rating: 5.0, seats: 4, transmission: 'Automatic', fuel: 'Petrol', available: true
-    },
-    {
-      id: 3, name: 'Mercedes-Benz G-Class', year: 2023, category: 'SUV', price: 400,
-      image: 'https://images.cdn.autocar.co.uk/sites/autocar.co.uk/files/styles/gallery_slide/public/01-mercedes-g500-g-wagen-2024-review-lead-driving-front.jpg?itok=o7z6UwrT',
-      rating: 4.8, seats: 5, transmission: 'Automatic', fuel: 'Petrol', available: true
-    },
-    {
-      id: 4, name: 'BMW M4 Competition', year: 2024, category: 'Coupe', price: 299,
-      image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600',
-      rating: 4.9, seats: 4, transmission: 'Manual', fuel: 'Petrol', available: true
-    },
-    {
-      id: 5, name: 'Range Rover Autobiography', year: 2023, category: 'Luxury', price: 450,
-      image: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=600',
-      rating: 4.7, seats: 5, transmission: 'Automatic', fuel: 'Petrol', available: true
-    },
-    {
-      id: 6, name: 'Audi RS e-tron GT', year: 2024, category: 'Sedan', price: 399,
-      image: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=600',
-      rating: 4.9, seats: 5, transmission: 'Automatic', fuel: 'Electric', available: true
-    },
-    {
-      id: 7, name: 'Toyota Camry Hybrid', year: 2024, category: 'Sedan', price: 85,
-      image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600',
-      rating: 4.6, seats: 5, transmission: 'Automatic', fuel: 'Hybrid', available: true
-    },
-    {
-      id: 8, name: 'Honda Accord Sport', year: 2024, category: 'Sedan', price: 75,
-      image: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=600',
-      rating: 4.7, seats: 5, transmission: 'Automatic', fuel: 'Petrol', available: true
-    },
-    {
-      id: 9, name: 'Ford Mustang GT', year: 2024, category: 'Sports', price: 199,
-      image: 'https://images.unsplash.com/photo-1611859266238-4b98091d9d9b?w=800',
-      rating: 4.8, seats: 4, transmission: 'Manual', fuel: 'Petrol', available: true
-    },
-    {
-      id: 10, name: 'Chevrolet Suburban', year: 2023, category: 'SUV', price: 180,
-      image: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600',
-      rating: 4.5, seats: 8, transmission: 'Automatic', fuel: 'Petrol', available: true
-    },
-    {
-      id: 11, name: 'Nissan Leaf Plus', year: 2024, category: 'Electric', price: 70,
-      image: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=600',
-      rating: 4.4, seats: 5, transmission: 'Automatic', fuel: 'Electric', available: true
-    },
-    {
-      id: 12, name: 'Volkswagen ID.4', year: 2024, category: 'Electric', price: 95,
-      image: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=600',
-      rating: 4.6, seats: 5, transmission: 'Automatic', fuel: 'Electric', available: true
-    },
-    {
-      id: 13, name: 'Lexus ES 350', year: 2024, category: 'Luxury', price: 125,
-      image:'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800',
-      rating: 4.8, seats: 5, transmission: 'Automatic', fuel: 'Petrol', available: true
-    },
-    {
-      id: 14, name: 'Mazda CX-5 Turbo', year: 2024, category: 'SUV', price: 90,
-      image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600',
-      rating: 4.7, seats: 5, transmission: 'Automatic', fuel: 'Petrol', available: true
-    },
-    {
-      id: 15, name: 'Jeep Wrangler Rubicon', year: 2024, category: 'SUV', price: 150,
-      image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800',
-      rating: 4.6, seats: 5, transmission: 'Automatic', fuel: 'Petrol', available: true
-    },
-  ]
+  const [vehicles, setVehicles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const [filters, setFilters] = useState({
     priceMax: 500,
@@ -94,19 +20,43 @@ export default function Search() {
   const [sortBy, setSortBy] = useState('recommended')
   const [searchQuery, setSearchQuery] = useState('')
 
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const data = await vehiclesService.getVehicles()
+        setVehicles(data)
+      } catch (err) {
+        setError('Failed to fetch vehicles.')
+        toast.error('Failed to fetch vehicles.')
+        console.error('Fetch vehicles error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchVehicles()
+  }, [])
+
   // Filter vehicles
-  const filteredVehicles = allVehicles.filter(vehicle => {
+  const filteredVehicles = vehicles.filter(vehicle => {
     // Price filter
-    if (vehicle.price > filters.priceMax) return false
+    if (parseFloat(vehicle.price_per_day) > filters.priceMax) return false
     
     // Category filter
-    if (filters.category && vehicle.category !== filters.category) return false
+    if (filters.category && vehicle.category?.name !== filters.category) return false
     
     // Transmission filter
     if (filters.transmission && vehicle.transmission !== filters.transmission) return false
     
     // Search query
     if (searchQuery && !vehicle.name.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    
+    // Feature filter (assuming vehicle.features is an array of objects with a 'name' property)
+    // if (filters.features.length > 0) {
+    //   const vehicleFeatureNames = vehicle.features.map(f => f.name);
+    //   if (!filters.features.every(filterFeature => vehicleFeatureNames.includes(filterFeature))) {
+    //     return false;
+    //   }
+    // }
     
     return true
   })
@@ -115,9 +65,9 @@ export default function Search() {
   const sortedVehicles = [...filteredVehicles].sort((a, b) => {
     switch (sortBy) {
       case 'price-low':
-        return a.price - b.price
+        return parseFloat(a.price_per_day) - parseFloat(b.price_per_day)
       case 'price-high':
-        return b.price - a.price
+        return parseFloat(b.price_per_day) - parseFloat(a.price_per_day)
       case 'rating':
         return b.rating - a.rating
       case 'newest':
@@ -135,6 +85,21 @@ export default function Search() {
       features: []
     })
     setSearchQuery('')
+  }
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return (
+      <Container className="py-5 text-center">
+        <Alert variant="danger">{error}</Alert>
+        <Button onClick={() => window.location.reload()} variant="primary">
+          Reload Page
+        </Button>
+      </Container>
+    );
   }
 
   return (
@@ -159,7 +124,7 @@ export default function Search() {
             </Col>
             <Col md={4}>
               <p className="text-muted mb-0 mt-2 mt-md-0">
-                {sortedVehicles.length} vehicles available
+                {sortedVehicles.length} of {vehicles.length} vehicles
               </p>
             </Col>
           </Row>
@@ -202,6 +167,7 @@ export default function Search() {
               {/* Category */}
               <div className="mb-4">
                 <h6 className="fw-bold mb-3">Category</h6>
+                {/* Dynamically fetch categories or use a predefined list if backend provides one */}
                 {['SUV', 'Sedan', 'Sports', 'Coupe', 'Luxury', 'Electric'].map((cat) => (
                   <Form.Check
                     key={cat}
@@ -239,14 +205,16 @@ export default function Search() {
               {/* Features */}
               <div className="mb-4">
                 <h6 className="fw-bold mb-3">Features</h6>
-                {['Bluetooth', 'GPS', 'Sunroof', 'Heated Seats', 'Apple CarPlay'].map((feature) => (
+                {/* Features are not available in the provided vehicle data structure */}
+                {/* {['Bluetooth', 'GPS', 'Sunroof', 'Heated Seats', 'Apple CarPlay'].map((feature) => (
                   <Form.Check 
                     key={feature}
                     type="checkbox" 
                     label={feature} 
                     className="mb-2" 
                   />
-                ))}
+                ))} */}
+                 <p className="text-muted small">Features filter not yet implemented.</p>
               </div>
             </div>
           </Col>
@@ -256,7 +224,7 @@ export default function Search() {
             {/* Sort */}
             <div className="d-flex justify-content-between align-items-center mb-4">
               <p className="text-muted mb-0">
-                Showing {sortedVehicles.length} of {allVehicles.length} vehicles
+                Showing {sortedVehicles.length} of {vehicles.length} vehicles
               </p>
               <Form.Select 
                 style={{ width: 'auto', borderRadius: '10px' }}
@@ -287,7 +255,7 @@ export default function Search() {
                       <div className="position-relative">
                         <Card.Img 
                           variant="top" 
-                          src={vehicle.image} 
+                          src={vehicle.primary_image?.image || 'https://via.placeholder.com/600x400'} 
                           className="vehicle-image"
                           alt={vehicle.name}
                           style={{ height: '200px', objectFit: 'cover' }}
@@ -297,7 +265,7 @@ export default function Search() {
                           className="position-absolute"
                           style={{ top: '10px', left: '10px' }}
                         >
-                          {vehicle.category}
+                          {vehicle.category?.name}
                         </Badge>
                         <Badge 
                           bg="warning" 
@@ -317,13 +285,13 @@ export default function Search() {
                         <div className="d-flex gap-3 mb-3 text-muted small">
                           <span>👤 {vehicle.seats}</span>
                           <span>⚙️ {vehicle.transmission}</span>
-                          <span>⚡ {vehicle.fuel}</span>
+                          <span>⚡ {vehicle.fuel_type}</span>
                         </div>
 
                         <div className="d-flex justify-content-between align-items-center">
                           <div>
                             <div className="price-tag">
-                              ${vehicle.price}
+                              ${vehicle.price_per_day}
                               <small>/day</small>
                             </div>
                           </div>
