@@ -3,7 +3,7 @@ from .views import (
     WalletView, WalletTransactionsView, WalletTopUpView,
     PaymentCreateView, PaymentHistoryView,
     PromoCodeListView, PromoCodeValidateView,
-    StripeWebhookView
+    StripeWebhookView, PaymentVerifyView
 )
 
 urlpatterns = [
@@ -16,4 +16,5 @@ urlpatterns = [
     path('promo-codes/', PromoCodeListView.as_view(), name='promo_code_list'),
     path('promo-codes/validate/', PromoCodeValidateView.as_view(), name='promo_code_validate'),
     path('webhook/stripe/', StripeWebhookView.as_view(), name='stripe_webhook'),
+    path('verify/<str:transactionId>/', PaymentVerifyView.as_view(), name='payment_verify'),
 ]

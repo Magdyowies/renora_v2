@@ -1,6 +1,6 @@
 import { Container, Row, Col, Card, Table, Badge, Button, Modal } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../context/AuthContext'
 import { useState, useEffect } from 'react'
 
 export default function Dashboard() {
@@ -10,12 +10,7 @@ export default function Dashboard() {
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [bookings, setBookings] = useState([])
 
-  // Check authentication
-  useEffect(() => {
-    if (!user) {
-      navigate('/signin')
-    }
-  }, [user, navigate])
+
 
   // Load bookings from localStorage
   useEffect(() => {

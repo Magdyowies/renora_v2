@@ -1,6 +1,6 @@
 import { Container, Row, Col, Card, Badge, Button, Tab, Tabs } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../context/AuthContext'
 
 export default function MyBookings() {
   const { user } = useAuth()

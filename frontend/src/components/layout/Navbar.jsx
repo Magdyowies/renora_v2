@@ -1,10 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Container, Nav, Navbar as BSNavbar, Button, NavDropdown } from 'react-bootstrap'
-import { useAuth } from '../../contexts/AuthContext'
+import { useAuth } from '../../context/AuthContext'
 
 export default function Navbar() {
   const navigate = useNavigate()
-  const { user, isAuthenticated, isAdmin, logout } = useAuth()
+  const { user, isAuthenticated, logout } = useAuth()
+  const isAdmin = user?.role === 'admin';
 
   const handleLogout = () => {
     logout()
@@ -81,7 +82,7 @@ export default function Navbar() {
               <>
                 <Button 
                   as={Link} 
-                  to="/signin" 
+                  to="/login" 
                   variant="link"
                   className="text-decoration-none mx-2 fw-semibold"
                   style={{ color: '#4a5568' }}

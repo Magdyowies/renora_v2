@@ -239,3 +239,14 @@ class StripeWebhookView(APIView):
             print('Unhandled event type {}'.format(event['type']))
 
         return Response({'success': True}, status=status.HTTP_200_OK)
+
+
+class PaymentVerifyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, transactionId):
+        try:
+            payment = Payment.objects.get(transaction_id=transactionId, user=request.user)
+            return Response(PaymentSerializer(payment).data)
+        except Payment.DoesNotExist:
+            return Response({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)

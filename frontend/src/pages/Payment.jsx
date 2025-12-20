@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 import { useState, useEffect } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../context/AuthContext'
 
 const paymentSchema = z.object({
   cardNumber: z.string().regex(/^\d{16}$/, 'Card number must be 16 digits'),
@@ -33,15 +33,7 @@ export default function Payment() {
     resolver: zodResolver(paymentSchema),
   })
 
-  // Check authentication on mount
-  useEffect(() => {
-    if (!user) {
-      // Store the intended destination
-      navigate('/signin', { 
-        state: { from: location.pathname }
-      })
-    }
-  }, [user, navigate, location])
+
 
   // Vehicle database with all 15 vehicles
   const vehicles = {
@@ -116,17 +108,7 @@ export default function Payment() {
     }
   }
 
-  // Show loading if not authenticated
-  if (!user) {
-    return (
-      <Container className="py-5 text-center">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-        <p className="mt-3 text-muted">Redirecting to sign in...</p>
-      </Container>
-    )
-  }
+
 
   // Show success message
   if (paymentSuccess) {

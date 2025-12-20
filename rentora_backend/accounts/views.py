@@ -123,3 +123,134 @@ class AdminUserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminUserSerializer
     permission_classes = [permissions.IsAdminUser]
     lookup_field = 'id'
+
+
+class LogoutView(APIView):
+
+
+    permission_classes = [permissions.IsAuthenticated]
+
+
+
+
+
+    def post(self, request):
+
+
+        try:
+
+
+            refresh_token = request.data["refresh"]
+
+
+            token = RefreshToken(refresh_token)
+
+
+            token.blacklist()
+
+
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+
+
+        except Exception as e:
+
+
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+from bookings.models import Booking
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class VerifyTokenView(APIView):
+
+
+
+
+
+
+
+
+    permission_classes = [permissions.IsAuthenticated]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def get(self, request):
+
+
+
+
+
+
+
+
+        return Response({'valid': True}, status=status.HTTP_200_OK)
+
+class UserStatsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, id):
+        # Admin يقدر يشوف أي حد
+        if not request.user.is_staff and request.user.id != id:
+            return Response(
+                {"detail": "You do not have permission to view this user's stats."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        user = get_object_or_404(User, id=id)
+
+        bookings = Booking.objects.filter(customer=user)
+
+        stats = {
+            "totalBookings": bookings.count(),
+            "totalSpent": sum(
+                b.total_price for b in bookings if b.total_price
+            ),
+            "activeRentals": bookings.filter(status="active").count(),
+            "completedRentals": bookings.filter(status="completed").count(),
+        }
+
+        return Response(stats, status=status.HTTP_200_OK)

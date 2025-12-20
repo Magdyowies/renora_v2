@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider } from './context/AuthContext'
 
 // Layout Components
 import Navbar from './components/layout/Navbar'
@@ -12,7 +12,7 @@ import Chatbot from './components/Chatbot'
 import Home from './pages/Home'
 import Search from './pages/Search'
 import VehicleDetail from './pages/VehicleDetail'
-import SignIn from './pages/SignIn'
+import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import Dashboard from './pages/Dashboard'
 import MyBookings from './pages/MyBookings'
@@ -21,6 +21,7 @@ import Payment from './pages/Payment'
 import HowItWorks from './pages/HowItWorks'
 import Business from './pages/Business'
 import NotFound from './pages/NotFound'
+import ProtectedRoute from './components/ProtectedRoute'
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -46,12 +47,15 @@ function App() {
                 <Route path="/vehicle/:id" element={<VehicleDetail />} />
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/business" element={<Business />} />
-                <Route path="/signin" element={<SignIn />} />
+                <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/my-bookings" element={<MyBookings />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/payment/:vehicleId" element={<Payment />} />
+
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/my-bookings" element={<MyBookings />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/payment/:vehicleId" element={<Payment />} />
+                </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

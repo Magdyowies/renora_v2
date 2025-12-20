@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../context/AuthContext'
 
 export default function Home() {
   const { isAuthenticated } = useAuth()

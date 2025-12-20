@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Container, Row, Col, Card, Button, Badge, ListGroup } from 'react-bootstrap'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../context/AuthContext'
 
 export default function VehicleDetail() {
   const { id } = useParams()
@@ -341,8 +341,8 @@ export default function VehicleDetail() {
 
   const handleBookNow = () => {
     if (!user) {
-      // Redirect to sign in, then return here
-      navigate('/signin', { state: { from: `/vehicle/${id}` } })
+      // Redirect to login, then return here
+      navigate('/login', { state: { from: `/vehicle/${id}` } })
       return
     }
     // User is logged in, proceed to payment

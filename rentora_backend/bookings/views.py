@@ -42,20 +42,6 @@ class MyBookingsView(generics.ListAPIView):
         return Booking.objects.filter(customer=self.request.user)
 
 
-class BookingDetailView(generics.RetrieveAPIView):
-    queryset = Booking.objects.all()
-    serializer_class = BookingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.role == 'admin':
-            return Booking.objects.all()
-        elif user.role == 'vendor':
-            return Booking.objects.filter(vehicle__vendor=user)
-        return Booking.objects.filter(customer=user)
-
-
 class BookingCancelView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -109,3 +95,15 @@ class AllBookingsView(generics.ListAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAdminUser]
+
+
+class BookingUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'admin':
+            return Booking.objects.all()
+        return Booking.objects.filter(customer=user)

@@ -1,13 +1,20 @@
+import authService from '../services/authService';
 import { Link, useNavigate } from 'react-router-dom'
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../context/AuthContext'
 
 const signUpSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  first_name: z.string().min(2, 'First name must be at least 2 characters'),
+  last_name: z.string().min(2, 'Last name must be at least 2 characters'),
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format'), // E.164 format or similar
+  role: z.enum(['customer', 'vendor'], {
+    errorMap: () => ({ message: "Role must be 'customer' or 'vendor'" }),
+  }),
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
@@ -21,30 +28,49 @@ const signUpSchema = z.object({
 
 export default function SignUp() {
   const navigate = useNavigate()
-  const { login } = useAuth()
-  
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm({
+  const { register: formRegister, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(signUpSchema),
   })
 
   const onSubmit = async (data) => {
     try {
-      console.log('Sign up data:', data)
+      const payload = {
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        password_confirm: data.confirmPassword, // Map confirmPassword to password_confirm
+        first_name: data.first_name,
+        last_name: data.last_name,
+        phone: data.phone,
+        role: data.role,
+      };
+
+      await authService.register(payload);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Use auth context login with name
-      login(data.email, data.password, data.fullName)
-      
-      toast.success('Account created successfully!')
-      navigate('/') // Go to home after signup
+      toast.success('Account created successfully! Please log in.');
+      navigate('/login');
     } catch (error) {
-      toast.error('Sign up failed. Please try again.')
+      console.error('Registration error:', error);
+      let errorMessage = 'Sign up failed. Please try again.';
+
+      // Attempt to parse DRF validation errors
+      if (error.response && error.response.data) {
+        // Check for common non-field errors
+        if (error.response.data.detail) {
+          errorMessage = error.response.data.detail;
+        } else if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else {
+          // Iterate over field-specific errors
+          for (const key in error.response.data) {
+            if (Array.isArray(error.response.data[key]) && error.response.data[key].length > 0) {
+              errorMessage = `${key.replace('_', ' ')}: ${error.response.data[key][0]}`;
+              break; 
+            }
+          }
+        }
+      }
+      toast.error(errorMessage);
     }
   }
 
@@ -61,24 +87,55 @@ export default function SignUp() {
 
               <Form onSubmit={handleSubmit(onSubmit)}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Full Name</Form.Label>
+                  <Form.Label>Username</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder="Enter your full name"
-                    {...register('fullName')}
-                    isInvalid={!!errors.fullName}
+                    placeholder="Create a username"
+                    {...formRegister('username')}
+                    isInvalid={!!errors.username}
                   />
                   <Form.Control.Feedback type="invalid">
-                    {errors.fullName?.message}
+                    {errors.username?.message}
                   </Form.Control.Feedback>
                 </Form.Group>
+
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>First Name</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Enter your first name"
+                        {...formRegister('first_name')}
+                        isInvalid={!!errors.first_name}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.first_name?.message}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Last Name</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Enter your last name"
+                        {...formRegister('last_name')}
+                        isInvalid={!!errors.last_name}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.last_name?.message}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
 
                 <Form.Group className="mb-3">
                   <Form.Label>Email Address</Form.Label>
                   <Form.Control
                     type="email"
                     placeholder="Enter your email"
-                    {...register('email')}
+                    {...formRegister('email')}
                     isInvalid={!!errors.email}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -87,11 +144,38 @@ export default function SignUp() {
                 </Form.Group>
 
                 <Form.Group className="mb-3">
+                  <Form.Label>Phone Number</Form.Label>
+                  <Form.Control
+                    type="tel"
+                    placeholder="Enter your phone number (e.g., +15551234567)"
+                    {...formRegister('phone')}
+                    isInvalid={!!errors.phone}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.phone?.message}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Register as</Form.Label>
+                  <Form.Select
+                    {...formRegister('role')}
+                    isInvalid={!!errors.role}
+                  >
+                    <option value="customer">Customer</option>
+                    <option value="vendor">Vendor</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {errors.role?.message}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
                   <Form.Label>Password</Form.Label>
                   <Form.Control
                     type="password"
                     placeholder="Create a password"
-                    {...register('password')}
+                    {...formRegister('password')}
                     isInvalid={!!errors.password}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -104,7 +188,7 @@ export default function SignUp() {
                   <Form.Control
                     type="password"
                     placeholder="Confirm your password"
-                    {...register('confirmPassword')}
+                    {...formRegister('confirmPassword')}
                     isInvalid={!!errors.confirmPassword}
                   />
                   <Form.Control.Feedback type="invalid">
@@ -123,7 +207,7 @@ export default function SignUp() {
                         </Link>
                       </>
                     }
-                    {...register('terms')}
+                    {...formRegister('terms')}
                     isInvalid={!!errors.terms}
                     feedback={errors.terms?.message}
                     feedbackType="invalid"
@@ -157,7 +241,7 @@ export default function SignUp() {
               <div className="text-center">
                 <p className="mb-0">
                   Already have an account?{' '}
-                  <Link to="/signin" className="text-decoration-none fw-bold">
+                  <Link to="/login" className="text-decoration-none fw-bold">
                     Sign in
                   </Link>
                 </p>

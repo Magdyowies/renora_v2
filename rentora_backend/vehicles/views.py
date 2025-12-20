@@ -72,6 +72,15 @@ class VehicleListView(generics.ListAPIView):
         return queryset
 
 
+class VehicleSearchView(VehicleListView):
+    def post(self, request, *args, **kwargs):
+        # This is a bit of a hack to reuse the filtering logic from VehicleListView
+        # We're taking the POST body and putting it into the query_params
+        # so that get_queryset works as expected.
+        self.request.query_params = request.data
+        return self.list(request, *args, **kwargs)
+
+
 class VehicleDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Vehicle.objects.all()
     permission_classes = [IsVendorOrAdmin]
@@ -132,6 +141,10 @@ class VehicleImageDeleteView(generics.DestroyAPIView):
         return VehicleImage.objects.get(pk=self.kwargs['image_pk'], vehicle_id=self.kwargs['pk'])
 
 
+from bookings.models import Booking
+from datetime import datetime
+
+
 class AdminVehicleViewSet(viewsets.ModelViewSet):
     queryset = Vehicle.objects.all().order_by('id')
     serializer_class = AdminVehicleSerializer
@@ -142,3 +155,36 @@ class AdminVehicleViewSet(viewsets.ModelViewSet):
         # the vendor should be the admin user creating it.
         # This can be changed if vehicles can be created for other vendors directly by admin.
         serializer.save(vendor=self.request.user)
+
+
+class VehicleAvailabilityView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, pk):
+        try:
+            vehicle = Vehicle.objects.get(pk=pk)
+        except Vehicle.DoesNotExist:
+            return Response({'error': 'Vehicle not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        start_date_str = request.data.get('startDate')
+        end_date_str = request.data.get('endDate')
+
+        if not start_date_str or not end_date_str:
+            return Response({'error': 'Start date and end date are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            start_date = datetime.fromisoformat(start_date_str).date()
+            end_date = datetime.fromisoformat(end_date_str).date()
+        except ValueError:
+            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        overlapping_bookings = Booking.objects.filter(
+            vehicle=vehicle,
+            start_date__lte=end_date,
+            end_date__gte=start_date
+        ).exclude(status='cancelled')
+
+        if overlapping_bookings.exists():
+            return Response({'available': False}, status=status.HTTP_200_OK)
+
+        return Response({'available': True}, status=status.HTTP_200_OK)
