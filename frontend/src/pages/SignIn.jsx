@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../context/AuthContext'
 
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -107,18 +107,6 @@ export default function SignIn() {
                   {isSubmitting ? 'Signing in...' : 'Sign In'}
                 </Button>
               </Form>
-
-              <div className="text-center mt-4">
-                <p className="text-muted mb-3">Or sign in with</p>
-                <div className="d-flex gap-2">
-                  <Button variant="outline-secondary" className="flex-fill">
-                    <i className="bi bi-google me-2"></i> Google
-                  </Button>
-                  <Button variant="outline-secondary" className="flex-fill">
-                    <i className="bi bi-facebook me-2"></i> Facebook
-                  </Button>
-                </div>
-              </div>
 
               <hr className="my-4" />
 

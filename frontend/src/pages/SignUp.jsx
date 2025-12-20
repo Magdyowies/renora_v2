@@ -224,17 +224,6 @@ export default function SignUp() {
                 </Button>
               </Form>
 
-              <div className="text-center mt-4">
-                <p className="text-muted mb-3">Or sign up with</p>
-                <div className="d-flex gap-2">
-                  <Button variant="outline-secondary" className="flex-fill">
-                    <i className="bi bi-google me-2"></i> Google
-                  </Button>
-                  <Button variant="outline-secondary" className="flex-fill">
-                    <i className="bi bi-facebook me-2"></i> Facebook
-                  </Button>
-                </div>
-              </div>
 
               <hr className="my-4" />
 
