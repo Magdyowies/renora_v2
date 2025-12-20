@@ -22,6 +22,9 @@ import Payment from './pages/Payment'
 import HowItWorks from './pages/HowItWorks'
 import Business from './pages/Business'
 import Contact from './pages/Contact'
+import ForgotPassword from './pages/ForgotPassword'
+import FAQ from './pages/FAQ'
+import Terms from './pages/Terms'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -53,6 +56,9 @@ function App() {
                 <Route path="/business" element={<Business />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/terms" element={<Terms />} />
 
                 <Route element={<ProtectedRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />

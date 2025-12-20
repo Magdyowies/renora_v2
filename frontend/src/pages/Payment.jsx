@@ -24,6 +24,17 @@ export default function Payment() {
   const { user } = useAuth()
   const [days, setDays] = useState(5)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [promoCode, setPromoCode] = useState('')
+  const [appliedPromo, setAppliedPromo] = useState(null)
+  const [promoError, setPromoError] = useState('')
+
+  // Valid promo codes
+  const promoCodes = {
+    'SAVE10': { discount: 0.10, description: '10% off' },
+    'SAVE20': { discount: 0.20, description: '20% off' },
+    'FIRST': { discount: 0.15, description: '15% off first booking' },
+    'WEEKEND': { discount: 0.12, description: '12% off weekend rental' }
+  }
   
   const {
     register,
@@ -33,7 +44,15 @@ export default function Payment() {
     resolver: zodResolver(paymentSchema),
   })
 
-
+  // Check authentication on mount
+  useEffect(() => {
+    if (!user) {
+      // Store the intended destination
+      navigate('/signin', { 
+        state: { from: location.pathname }
+      })
+    }
+  }, [user, navigate, location])
 
   // Vehicle database with all 15 vehicles
   const vehicles = {
@@ -59,7 +78,26 @@ export default function Payment() {
   const insurance = 25
   const tax = Math.round(vehicleData.pricePerDay * days * 0.08) // 8% tax
   const subtotal = vehicleData.pricePerDay * days
-  const total = subtotal + insurance + tax
+  const discount = appliedPromo ? Math.round(subtotal * appliedPromo.discount) : 0
+  const total = subtotal + insurance + tax - discount
+
+  const handleApplyPromo = () => {
+    const code = promoCode.toUpperCase().trim()
+    if (promoCodes[code]) {
+      setAppliedPromo({ code, ...promoCodes[code] })
+      setPromoError('')
+      toast.success(`Promo code "${code}" applied!`)
+    } else {
+      setPromoError('Invalid promo code')
+      setAppliedPromo(null)
+    }
+  }
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null)
+    setPromoCode('')
+    setPromoError('')
+  }
 
   const onSubmit = async (data) => {
     try {
@@ -108,7 +146,17 @@ export default function Payment() {
     }
   }
 
-
+  // Show loading if not authenticated
+  if (!user) {
+    return (
+      <Container className="py-5 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p className="mt-3 text-muted">Redirecting to sign in...</p>
+      </Container>
+    )
+  }
 
   // Show success message
   if (paymentSuccess) {
@@ -350,7 +398,58 @@ export default function Payment() {
                       <span>Tax (8%)</span>
                       <span className="fw-semibold">${tax}</span>
                     </ListGroup.Item>
+                    {appliedPromo && (
+                      <ListGroup.Item className="d-flex justify-content-between px-0 text-success">
+                        <span>
+                          Discount ({appliedPromo.description})
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="text-danger p-0 ms-2"
+                            onClick={handleRemovePromo}
+                            style={{ textDecoration: 'none', fontSize: '0.8rem' }}
+                          >
+                            ✕ Remove
+                          </Button>
+                        </span>
+                        <span className="fw-semibold">-${discount}</span>
+                      </ListGroup.Item>
+                    )}
                   </ListGroup>
+
+                  {/* Promo Code Section */}
+                  {!appliedPromo && (
+                    <div className="mb-3">
+                      <Form.Label className="fw-semibold small">Have a promo code?</Form.Label>
+                      <div className="d-flex gap-2">
+                        <Form.Control
+                          type="text"
+                          placeholder="Enter code"
+                          value={promoCode}
+                          onChange={(e) => {
+                            setPromoCode(e.target.value)
+                            setPromoError('')
+                          }}
+                          isInvalid={!!promoError}
+                          style={{ borderRadius: '8px' }}
+                        />
+                        <Button
+                          variant="outline-primary"
+                          onClick={handleApplyPromo}
+                          disabled={!promoCode.trim()}
+                          style={{ borderRadius: '8px', whiteSpace: 'nowrap' }}
+                        >
+                          Apply
+                        </Button>
+                      </div>
+                      {promoError && (
+                        <small className="text-danger">{promoError}</small>
+                      )}
+                      <small className="text-muted d-block mt-2">
+                        Try: SAVE10, SAVE20, FIRST, WEEKEND
+                      </small>
+                    </div>
+                  )}
 
                   <hr />
 

@@ -43,6 +43,8 @@ export default function Navbar() {
             </Nav.Link>
             <Nav.Link as={Link} to="/contact" className="mx-3 fw-semibold" style={{ color: '#4a5568' }}>
             Contact</Nav.Link>
+            <Nav.Link as={Link} to="/faq" className="mx-3 fw-semibold" style={{ color: '#4a5568' }}>
+            FAQ</Nav.Link>
           </Nav>
 
           {/* Right Side - Auth Buttons */}
