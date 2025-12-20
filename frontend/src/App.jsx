@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import Chatbot from './components/Chatbot'
+import ScrollToTop from './components/ScrollToTop'
 
 // Pages
 import Home from './pages/Home'
@@ -20,6 +21,7 @@ import Profile from './pages/Profile'
 import Payment from './pages/Payment'
 import HowItWorks from './pages/HowItWorks'
 import Business from './pages/Business'
+import Contact from './pages/Contact'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -38,6 +40,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
+          <ScrollToTop />
           <div className="d-flex flex-column min-vh-100">
             <Navbar />
             <main className="flex-grow-1">
@@ -45,6 +48,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/vehicle/:id" element={<VehicleDetail />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/business" element={<Business />} />
                 <Route path="/login" element={<Login />} />

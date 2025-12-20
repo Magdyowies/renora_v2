@@ -41,9 +41,9 @@ export default function Footer() {
           <Col md={4}>
             <h6 className="fw-bold mb-3">Contact</h6>
             <p className="text-white-50 text-decoration-none small">
-              Email: info@renato.com
+              Contact us at <a href="mailto:info@rentora.com">info@rentora.com</a>
               <br />
-              Phone: +1 (234) 567-890
+              Phone: +20 100 123 4567
             </p>
           </Col>
         </Row>
