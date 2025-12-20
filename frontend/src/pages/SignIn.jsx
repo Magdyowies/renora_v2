@@ -26,23 +26,25 @@ export default function SignIn() {
 
   const onSubmit = async (data) => {
     try {
-      console.log('Sign in data:', data)
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Use auth context login
-      const { isAdmin } = login(data.email, data.password)
-      
+      // Call real login API from AuthContext
+      const result = await login(data.email, data.password, data.remember)
+      const isAdmin = result?.isAdmin
+
       if (isAdmin) {
         toast.success('Welcome back, Admin!')
         navigate('/dashboard')
       } else {
         toast.success('Signed in successfully!')
-        navigate('/') // Regular users go to home
+        navigate('/')
       }
     } catch (error) {
-      toast.error('Sign in failed. Please try again.')
+      // Handle API errors
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        error.message ||
+        'Sign in failed. Please try again.'
+      toast.error(message)
     }
   }
 
@@ -65,6 +67,7 @@ export default function SignIn() {
                     placeholder="Enter your email"
                     {...register('email')}
                     isInvalid={!!errors.email}
+                    disabled={isSubmitting}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.email?.message}
@@ -81,6 +84,7 @@ export default function SignIn() {
                     placeholder="Enter your password"
                     {...register('password')}
                     isInvalid={!!errors.password}
+                    disabled={isSubmitting}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.password?.message}
@@ -92,6 +96,7 @@ export default function SignIn() {
                     type="checkbox"
                     label="Remember me"
                     {...register('remember')}
+                    disabled={isSubmitting}
                   />
                   <Link to="/forgot-password" className="text-decoration-none">
                     Forgot password?
