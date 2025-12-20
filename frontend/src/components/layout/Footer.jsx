@@ -14,7 +14,7 @@ export default function Footer() {
               alt="Rentora Logo"
               style={{ height: "40px", width: "auto" }}
             />Renato</h5>
-            <p className="text-muted">
+            <p className="text-white-50 text-decoration-none">
               Your trusted partner for vehicle rentals.
             </p>
           </Col>
@@ -52,7 +52,7 @@ export default function Footer() {
 
         <Row>
           <Col className="text-center text-muted">
-            <p className="mb-0">© {currentYear} Renato. All rights reserved.</p>
+            <p className="text-white-50 text-decoration-none">© {currentYear} Renato. All rights reserved.</p>
           </Col>
         </Row>
       </Container>
