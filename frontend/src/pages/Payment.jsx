@@ -6,111 +6,191 @@ import { z } from 'zod'
 import toast from 'react-hot-toast'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import paymentsService from '../services/paymentsService' // Import paymentsService
+import bookingsService from '../services/bookingsService' // Import bookingsService
+import LoadingSpinner from '../components/LoadingSpinner' // Assuming LoadingSpinner is directly in components
+
+// Payment-related components
+import WalletBalance from '../components/payments/WalletBalance'
+import WalletTransactions from '../components/payments/WalletTransactions'
+import PaymentHistory from '../components/payments/PaymentHistory'
+import ApplyPromoCode from '../components/payments/ApplyPromoCode'
 
 const paymentSchema = z.object({
-  cardNumber: z.string().regex(/^\d{16}$/, 'Card number must be 16 digits'),
-  cardName: z.string().min(2, 'Name must be at least 2 characters'),
-  expiryDate: z.string().regex(/^\d{2}\/\d{2}$/, 'Format: MM/YY'),
-  cvv: z.string().regex(/^\d{3,4}$/, 'CVV must be 3 or 4 digits'),
-  billingAddress: z.string().min(5, 'Address is required'),
-  city: z.string().min(2, 'City is required'),
-  zipCode: z.string().min(5, 'Zip code is required'),
-})
+  // Card details are conditional based on payment method
+  cardNumber: z.string().optional(),
+  cardName: z.string().optional(),
+  expiryDate: z.string().optional(),
+  cvv: z.string().optional(),
+  billingAddress: z.string().optional(),
+  city: z.string().optional(),
+  zipCode: z.string().optional(),
+}).superRefine((data, ctx) => {
+    // Only validate card details if method is not 'wallet'
+    // This logic will be handled more explicitly in onSubmit based on selectedPaymentMethod
+    // For Zod schema, it's difficult to make fields conditionally required based on dynamic state outside the schema.
+    // We'll rely more on onSubmit validation and backend.
+    if (data.method !== 'wallet') { // Placeholder for conditional validation
+      if (!data.cardNumber) ctx.addIssue({ path: ['cardNumber'], message: 'Card number is required' });
+      if (!data.cardName) ctx.addIssue({ path: ['cardName'], message: 'Card name is required' });
+      if (!data.expiryDate) ctx.addIssue({ path: ['expiryDate'], message: 'Expiry date is required' });
+      if (!data.cvv) ctx.addIssue({ path: ['cvv'], message: 'CVV is required' });
+    }
+});
 
 export default function Payment() {
-  const { vehicleId } = useParams()
+  const { bookingId } = useParams() // Changed from vehicleId to bookingId
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
-  const [days, setDays] = useState(5)
+
+  const [bookingDetails, setBookingDetails] = useState(null)
+  const [bookingLoading, setBookingLoading] = useState(true)
+  const [bookingError, setBookingError] = useState(null)
+
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('wallet') // Default to wallet
+  const [promoCodeResult, setPromoCodeResult] = useState(null)
+  const [paymentProcessing, setPaymentProcessing] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
-  
+  const [walletBalance, setWalletBalance] = useState(0); // To check wallet balance before payment
+
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    reset, // Add reset to clear form if needed
   } = useForm({
     resolver: zodResolver(paymentSchema),
   })
 
-
-
-  // Vehicle database with all 15 vehicles
-  const vehicles = {
-    1: { name: 'Tesla Model Y Performance', pricePerDay: 129, category: 'Electric SUV', image: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400' },
-    2: { name: 'Porsche 911 Carrera', pricePerDay: 350, category: 'Sports Car', image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400' },
-    3: { name: 'Mercedes-Benz G-Class', pricePerDay: 400, category: 'Luxury SUV', image: 'https://images.unsplash.com/photo-1617531653520-bd4f03619e05?w=400' },
-    4: { name: 'BMW M4 Competition', pricePerDay: 299, category: 'Sports Coupe', image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400' },
-    5: { name: 'Range Rover Autobiography', pricePerDay: 450, category: 'Luxury SUV', image: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400' },
-    6: { name: 'Audi RS e-tron GT', pricePerDay: 399, category: 'Electric Sedan', image: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400' },
-    7: { name: 'Toyota Camry Hybrid', pricePerDay: 85, category: 'Sedan', image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400' },
-    8: { name: 'Honda Accord Sport', pricePerDay: 75, category: 'Sedan', image: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=400' },
-    9: { name: 'Ford Mustang GT', pricePerDay: 199, category: 'Sports Car', image: 'https://images.unsplash.com/photo-1584345604476-8ec5f12e42dd?w=400' },
-    10: { name: 'Chevrolet Suburban', pricePerDay: 180, category: 'Full-Size SUV', image: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400' },
-    11: { name: 'Nissan Leaf Plus', pricePerDay: 70, category: 'Electric Hatchback', image: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400' },
-    12: { name: 'Volkswagen ID.4', pricePerDay: 95, category: 'Electric SUV', image: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=400' },
-    13: { name: 'Lexus ES 350', pricePerDay: 125, category: 'Luxury Sedan', image: 'https://images.unsplash.com/photo-1623869675781-80aa31f92037?w=400' },
-    14: { name: 'Mazda CX-5 Turbo', pricePerDay: 90, category: 'Compact SUV', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400' },
-    15: { name: 'Jeep Wrangler Rubicon', pricePerDay: 150, category: 'Off-Road SUV', image: 'https://images.unsplash.com/photo-1606016159991-35e6b36d0ea7?w=400' },
-  }
-
-  const vehicleData = vehicles[vehicleId] || { name: 'Unknown Vehicle', pricePerDay: 100, category: 'Vehicle', image: '' }
-
-  const insurance = 25
-  const tax = Math.round(vehicleData.pricePerDay * days * 0.08) // 8% tax
-  const subtotal = vehicleData.pricePerDay * days
-  const total = subtotal + insurance + tax
-
-  const onSubmit = async (data) => {
-    try {
-      console.log('Payment data:', data)
-      
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Create booking object
-      const booking = {
-        id: Date.now(),
-        vehicleId: vehicleId,
-        vehicle: vehicleData.name,
-        vehicleCategory: vehicleData.category,
-        vehicleImage: vehicleData.image,
-        customer: user.name || user.email,
-        customerEmail: user.email,
-        customerPhone: user.phone || 'N/A',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        pickupLocation: data.city,
-        dropoffLocation: data.city,
-        status: 'active',
-        total: total,
-        pricePerDay: vehicleData.pricePerDay,
-        days: days,
-        paymentMethod: 'Credit Card',
-        cardLast4: data.cardNumber.slice(-4),
-        createdAt: new Date().toISOString(),
-      }
-
-      // Save to localStorage (simulating API call)
-      const existingBookings = JSON.parse(localStorage.getItem('bookings') || '[]')
-      existingBookings.push(booking)
-      localStorage.setItem('bookings', JSON.stringify(existingBookings))
-      
-      setPaymentSuccess(true)
-      toast.success(`Payment of $${total} successful!`)
-      
-      // Redirect to dashboard after 2 seconds
-      setTimeout(() => {
-        navigate('/dashboard')
-      }, 2000)
-    } catch (error) {
-      toast.error('Payment failed. Please try again.')
+  // =========================
+  // Fetch Booking Details on Mount
+  // =========================
+  useEffect(() => {
+    if (!user) {
+      navigate('/login', { state: { from: location.pathname } })
+      return;
     }
+
+    if (!bookingId) {
+      setBookingError('No booking ID provided. Please go back and select a booking.');
+      setBookingLoading(false);
+      return;
+    }
+
+    const fetchBookingDetails = async () => {
+      try {
+        const data = await bookingsService.getBookingDetails(bookingId);
+        // CRITICAL RULE: User can ONLY pay for their own booking
+        if (data.customer.id !== user.id) {
+          setBookingError('You are not authorized to pay for this booking.');
+          toast.error('You are not authorized to pay for this booking.');
+          setBookingLoading(false);
+          return;
+        }
+        setBookingDetails(data);
+      } catch (err) {
+        setBookingError('Failed to fetch booking details. Please try again later.');
+        toast.error('Failed to fetch booking details.');
+        console.error('Error fetching booking details:', err);
+      } finally {
+        setBookingLoading(false);
+      }
+    };
+
+    const fetchWalletInitialBalance = async () => {
+      try {
+        const wallet = await paymentsService.getWalletBalance();
+        setWalletBalance(wallet.balance);
+      } catch (err) {
+        // Log error, but don't stop payment flow if wallet balance fetch fails
+        console.error('Failed to fetch initial wallet balance:', err);
+      }
+    };
+
+    fetchBookingDetails();
+    fetchWalletInitialBalance();
+  }, [bookingId, navigate, location, user]);
+
+  // =========================
+  // Payment Submission
+  // =========================
+  const onSubmit = async (data) => {
+    setPaymentProcessing(true);
+    setPaymentSuccess(false);
+
+    if (!bookingDetails) {
+      toast.error('Booking details not loaded.');
+      setPaymentProcessing(false);
+      return;
+    }
+
+    // Determine final amount to pay
+    const amountToPay = promoCodeResult?.final_amount || bookingDetails.total_price;
+
+    // Validate wallet balance if paying with wallet
+    if (selectedPaymentMethod === 'wallet' && walletBalance < amountToPay) {
+      toast.error('Insufficient wallet balance. Please choose another payment method or top up your wallet.');
+      setPaymentProcessing(false);
+      return;
+    }
+
+    try {
+      const paymentPayload = {
+        booking_id: bookingDetails.id,
+        method: selectedPaymentMethod,
+        promo_code: promoCodeResult?.valid ? promoCodeResult.code : null,
+      };
+
+      const result = await paymentsService.createPayment(paymentPayload.booking_id, paymentPayload.method, paymentPayload.promo_code);
+
+      if (result.redirect_url) {
+        // Redirect to external payment gateway (e.g., Stripe, PayPal)
+        window.location.href = result.redirect_url;
+      } else {
+        // Assume payment is completed or pending if no redirect
+        setPaymentSuccess(true);
+        toast.success(`Payment status: ${result.status}. You will be redirected shortly.`);
+        
+        // Update wallet balance after successful wallet payment
+        if (selectedPaymentMethod === 'wallet') {
+          const updatedWallet = await paymentsService.getWalletBalance();
+          setWalletBalance(updatedWallet.balance);
+        }
+
+        setTimeout(() => {
+          navigate('/dashboard'); // Or '/my-bookings'
+        }, 2000);
+      }
+    } catch (error) {
+      toast.error('Payment failed. Please try again.');
+      console.error('Payment creation error:', error);
+    } finally {
+      setPaymentProcessing(false);
+    }
+  };
+
+  // =========================
+  // Initial Loading and Error Handling for Booking
+  // =========================
+  if (bookingLoading) {
+    return <LoadingSpinner />;
   }
 
+  if (bookingError) {
+    return (
+      <Container className="py-5 text-center">
+        <Alert variant="danger" className="mb-4">
+          <Alert.Heading>Error!</Alert.Heading>
+          <p>{bookingError}</p>
+          <hr />
+          <Button onClick={() => navigate(-1)} variant="danger">Go Back</Button>
+        </Alert>
+      </Container>
+    );
+  }
 
-
-  // Show success message
   if (paymentSuccess) {
     return (
       <Container className="py-5">
@@ -139,8 +219,8 @@ export default function Payment() {
                   Your booking has been confirmed. You will receive a confirmation email shortly.
                 </p>
                 <Alert variant="success" className="mb-4">
-                  <strong>Booking ID:</strong> #{Date.now()}<br />
-                  <strong>Amount Paid:</strong> ${total}
+                  <strong>Booking ID:</strong> #{bookingDetails.id}<br />
+                  <strong>Amount Paid:</strong> ${promoCodeResult?.final_amount?.toFixed(2) || bookingDetails.total_price?.toFixed(2)}
                 </Alert>
                 <p className="text-muted small mb-4">
                   Redirecting to dashboard...
@@ -160,6 +240,10 @@ export default function Payment() {
     )
   }
 
+  // Final amount to display (after potential promo code)
+  const finalDisplayAmount = promoCodeResult?.final_amount || bookingDetails.total_price;
+
+
   return (
     <Container className="py-5">
       <Row className="justify-content-center">
@@ -167,7 +251,7 @@ export default function Payment() {
           <h2 className="fw-bold mb-4">Complete Your Payment</h2>
           
           <Alert variant="info" className="mb-4">
-            <strong>Logged in as:</strong> {user.email}
+            <strong>Logged in as:</strong> {user?.email}
           </Alert>
           
           <Row>
@@ -178,185 +262,203 @@ export default function Payment() {
                   <h5 className="fw-bold mb-4">Payment Information</h5>
                   
                   <Form onSubmit={handleSubmit(onSubmit)}>
+                    {/* Payment Method Selector */}
                     <Form.Group className="mb-3">
-                      <Form.Label>Card Number</Form.Label>
+                      <Form.Label>Select Payment Method</Form.Label>
                       <Form.Control
-                        type="text"
-                        placeholder="1234 5678 9012 3456"
-                        maxLength={16}
-                        {...register('cardNumber')}
-                        isInvalid={!!errors.cardNumber}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.cardNumber?.message}
-                      </Form.Control.Feedback>
+                        as="select"
+                        value={selectedPaymentMethod}
+                        onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                        disabled={paymentProcessing}
+                      >
+                        <option value="wallet">Wallet Balance ({walletBalance?.toFixed(2)} EGP available)</option>
+                        <option value="stripe">Credit Card (Stripe)</option>
+                        {/* <option value="paypal">PayPal</option>
+                        <option value="fawry">Fawry</option> */}
+                      </Form.Control>
                     </Form.Group>
 
-                    <Form.Group className="mb-3">
-                      <Form.Label>Cardholder Name</Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder="John Doe"
-                        {...register('cardName')}
-                        isInvalid={!!errors.cardName}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.cardName?.message}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-
-                    <Row>
-                      <Col md={6}>
+                    {/* Credit Card Details (Conditional) */}
+                    {selectedPaymentMethod === 'stripe' && (
+                      <>
                         <Form.Group className="mb-3">
-                          <Form.Label>Expiry Date</Form.Label>
+                          <Form.Label>Card Number</Form.Label>
                           <Form.Control
                             type="text"
-                            placeholder="MM/YY"
-                            maxLength={5}
-                            {...register('expiryDate')}
-                            isInvalid={!!errors.expiryDate}
+                            placeholder="1234 5678 9012 3456"
+                            maxLength={16}
+                            {...register('cardNumber', { required: "Card number is required" })}
+                            isInvalid={!!errors.cardNumber}
                           />
                           <Form.Control.Feedback type="invalid">
-                            {errors.expiryDate?.message}
+                            {errors.cardNumber?.message}
                           </Form.Control.Feedback>
                         </Form.Group>
-                      </Col>
-                      <Col md={6}>
+
                         <Form.Group className="mb-3">
-                          <Form.Label>CVV</Form.Label>
+                          <Form.Label>Cardholder Name</Form.Label>
                           <Form.Control
                             type="text"
-                            placeholder="123"
-                            maxLength={4}
-                            {...register('cvv')}
-                            isInvalid={!!errors.cvv}
+                            placeholder="John Doe"
+                            {...register('cardName', { required: "Cardholder name is required" })}
+                            isInvalid={!!errors.cardName}
                           />
                           <Form.Control.Feedback type="invalid">
-                            {errors.cvv?.message}
+                            {errors.cardName?.message}
                           </Form.Control.Feedback>
                         </Form.Group>
-                      </Col>
-                    </Row>
 
-                    <hr className="my-4" />
+                        <Row>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Expiry Date</Form.Label>
+                              <Form.Control
+                                type="text"
+                                placeholder="MM/YY"
+                                maxLength={5}
+                                {...register('expiryDate', { required: "Expiry date is required" })}
+                                isInvalid={!!errors.expiryDate}
+                              />
+                              <Form.Control.Feedback type="invalid">
+                                {errors.expiryDate?.message}
+                              </Form.Control.Feedback>
+                            </Form.Group>
+                          </Col>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Label>CVV</Form.Label>
+                              <Form.Control
+                                type="text"
+                                placeholder="123"
+                                maxLength={4}
+                                {...register('cvv', { required: "CVV is required" })}
+                                isInvalid={!!errors.cvv}
+                              />
+                              <Form.Control.Feedback type="invalid">
+                                {errors.cvv?.message}
+                              </Form.Control.Feedback>
+                            </Form.Group>
+                          </Col>
+                        </Row>
 
-                    <h5 className="fw-bold mb-3">Billing Address</h5>
+                        <hr className="my-4" />
 
-                    <Form.Group className="mb-3">
-                      <Form.Label>Street Address</Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder="123 Main Street"
-                        {...register('billingAddress')}
-                        isInvalid={!!errors.billingAddress}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.billingAddress?.message}
-                      </Form.Control.Feedback>
-                    </Form.Group>
+                        <h5 className="fw-bold mb-3">Billing Address</h5>
 
-                    <Row>
-                      <Col md={6}>
                         <Form.Group className="mb-3">
-                          <Form.Label>City</Form.Label>
+                          <Form.Label>Street Address</Form.Label>
                           <Form.Control
                             type="text"
-                            placeholder="New York"
-                            {...register('city')}
-                            isInvalid={!!errors.city}
+                            placeholder="123 Main Street"
+                            {...register('billingAddress', { required: "Billing address is required" })}
+                            isInvalid={!!errors.billingAddress}
                           />
                           <Form.Control.Feedback type="invalid">
-                            {errors.city?.message}
+                            {errors.billingAddress?.message}
                           </Form.Control.Feedback>
                         </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Zip Code</Form.Label>
-                          <Form.Control
-                            type="text"
-                            placeholder="10001"
-                            {...register('zipCode')}
-                            isInvalid={!!errors.zipCode}
-                          />
-                          <Form.Control.Feedback type="invalid">
-                            {errors.zipCode?.message}
-                          </Form.Control.Feedback>
-                        </Form.Group>
-                      </Col>
-                    </Row>
+
+                        <Row>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Label>City</Form.Label>
+                              <Form.Control
+                                type="text"
+                                placeholder="New York"
+                                {...register('city', { required: "City is required" })}
+                                isInvalid={!!errors.city}
+                              />
+                              <Form.Control.Feedback type="invalid">
+                                {errors.city?.message}
+                              </Form.Control.Feedback>
+                            </Form.Group>
+                          </Col>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Zip Code</Form.Label>
+                              <Form.Control
+                                type="text"
+                                placeholder="10001"
+                                {...register('zipCode', { required: "Zip code is required" })}
+                                isInvalid={!!errors.zipCode}
+                              />
+                              <Form.Control.Feedback type="invalid">
+                                {errors.zipCode?.message}
+                              </Form.Control.Feedback>
+                            </Form.Group>
+                          </Col>
+                        </Row>
+                      </>
+                    )}
 
                     <Button 
                       type="submit" 
                       variant="primary" 
                       size="lg" 
                       className="w-100 mt-3"
-                      disabled={isSubmitting}
+                      disabled={paymentProcessing || !bookingDetails}
                     >
-                      {isSubmitting ? 'Processing...' : `Pay $${total}`}
+                      {paymentProcessing ? 'Processing...' : `Pay $${finalDisplayAmount?.toFixed(2)}`}
                     </Button>
                   </Form>
                 </Card.Body>
               </Card>
+
+              {/* Promo Code Section */}
+              {bookingDetails && (
+                <ApplyPromoCode 
+                  bookingAmount={bookingDetails.total_price} 
+                  onPromoApplied={setPromoCodeResult} 
+                />
+              )}
             </Col>
 
-            {/* Order Summary */}
+            {/* Order Summary & Wallet / History */}
             <Col md={5}>
               <Card className="shadow-sm border-0 sticky-top" style={{ top: '100px' }}>
                 <Card.Body className="p-4">
                   <h5 className="fw-bold mb-4">Order Summary</h5>
                   
-                  {vehicleData.image && (
+                  {bookingDetails.vehicle.image && (
                     <div className="mb-3">
                       <img 
-                        src={vehicleData.image} 
-                        alt={vehicleData.name}
+                        src={bookingDetails.vehicle.image} 
+                        alt={bookingDetails.vehicle.name}
                         style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
                       />
                     </div>
                   )}
                   
                   <div className="mb-3">
-                    <h6 className="fw-bold">{vehicleData.name}</h6>
-                    <Badge bg="secondary">{vehicleData.category}</Badge>
-                    <p className="text-muted small mb-2 mt-2">
-                      Rental Duration
-                    </p>
-                    <Form.Select 
-                      value={days}
-                      onChange={(e) => setDays(parseInt(e.target.value))}
-                      className="mb-2"
-                    >
-                      <option value="1">1 day</option>
-                      <option value="2">2 days</option>
-                      <option value="3">3 days</option>
-                      <option value="5">5 days</option>
-                      <option value="7">7 days</option>
-                      <option value="14">14 days</option>
-                      <option value="30">30 days</option>
-                    </Form.Select>
+                    <h6 className="fw-bold">{bookingDetails.vehicle.name}</h6>
+                    <Badge bg="secondary">{bookingDetails.vehicle.category}</Badge>
+                    <p className="text-muted small mb-2 mt-2">Booking ID: {bookingDetails.id}</p>
                   </div>
 
                   <ListGroup variant="flush" className="mb-3">
                     <ListGroup.Item className="d-flex justify-content-between px-0">
-                      <span>Rental (${vehicleData.pricePerDay} × {days} days)</span>
-                      <span className="fw-semibold">${subtotal}</span>
+                      <span>Booking Total</span>
+                      <span className="fw-semibold">${bookingDetails.total_price?.toFixed(2)}</span>
                     </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between px-0">
-                      <span>Insurance</span>
-                      <span className="fw-semibold">${insurance}</span>
-                    </ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between px-0">
-                      <span>Tax (8%)</span>
-                      <span className="fw-semibold">${tax}</span>
-                    </ListGroup.Item>
+                    {promoCodeResult?.valid && (
+                      <>
+                        <ListGroup.Item className="d-flex justify-content-between px-0 text-success">
+                          <span>Promo Discount</span>
+                          <span className="fw-semibold">-${promoCodeResult.discount_amount?.toFixed(2)}</span>
+                        </ListGroup.Item>
+                        <ListGroup.Item className="d-flex justify-content-between px-0 fw-bold">
+                          <span>Amount after discount</span>
+                          <span className="fw-semibold">${promoCodeResult.final_amount?.toFixed(2)}</span>
+                        </ListGroup.Item>
+                      </>
+                    )}
                   </ListGroup>
 
                   <hr />
 
                   <div className="d-flex justify-content-between mb-3">
-                    <span className="fw-bold fs-5">Total</span>
-                    <span className="fw-bold fs-5 text-primary">${total}</span>
+                    <span className="fw-bold fs-5">Total Payment</span>
+                    <span className="fw-bold fs-5 text-primary">${finalDisplayAmount?.toFixed(2)}</span>
                   </div>
 
                   <div className="bg-light p-3 rounded">
@@ -367,6 +469,11 @@ export default function Payment() {
                   </div>
                 </Card.Body>
               </Card>
+
+              {/* Wallet and History Components (Read-only) */}
+              <WalletBalance />
+              <WalletTransactions />
+              <PaymentHistory />
             </Col>
           </Row>
         </Col>

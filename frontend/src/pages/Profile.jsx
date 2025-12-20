@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import profileService from '../services/profileService'
+import userStatsService from '../services/userStatsService' // Import userStatsService
 import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function Profile() {
@@ -12,6 +13,8 @@ export default function Profile() {
   const [profileLoading, setProfileLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
   const [profileData, setProfileData] = useState(null)
+  const [userStats, setUserStats] = useState(null) // Add state for user stats
+  const [userStatsLoading, setUserStatsLoading] = useState(true) // Add state for user stats loading
 
   const [formData, setFormData] = useState({
     address: '',
@@ -23,11 +26,14 @@ export default function Profile() {
   })
 
   /* =========================
-     Fetch profile
+     Fetch profile and user stats
   ========================= */
   useEffect(() => {
     if (!isAuthenticated) {
-      if (!authLoading) setProfileLoading(false)
+      if (!authLoading) {
+        setProfileLoading(false)
+        setUserStatsLoading(false) // Also set stats loading to false if not authenticated
+      }
       return
     }
 
@@ -51,8 +57,23 @@ export default function Profile() {
       }
     }
 
+    const fetchUserStats = async () => {
+      try {
+        if (user?.id) { // Ensure user.id is available before fetching stats
+          const stats = await userStatsService.getUserStats(user.id);
+          setUserStats(stats);
+        }
+      } catch (error) {
+        toast.error('Failed to fetch user stats');
+        console.error(error);
+      } finally {
+        setUserStatsLoading(false);
+      }
+    };
+
     fetchProfile()
-  }, [isAuthenticated, authLoading])
+    fetchUserStats(); // Call fetchUserStats
+  }, [isAuthenticated, authLoading, user?.id]) // Depend on user.id
 
   /* =========================
      Handlers
@@ -113,7 +134,7 @@ export default function Profile() {
   /* =========================
      Loading
   ========================= */
-  if (profileLoading || authLoading) {
+  if (profileLoading || authLoading || userStatsLoading) { // Update loading condition
     return <LoadingSpinner />
   }
 
@@ -163,6 +184,39 @@ export default function Profile() {
                 </Button>
               </Card.Body>
             </Card>
+
+            {/* Account Stats Card - Dynamic */}
+            {userStats && (
+            <Card className="border-0 shadow-sm mt-3">
+              <Card.Body className="p-4">
+                <h6 className="fw-bold mb-3">Account Stats</h6>
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">Total Bookings</span>
+                    <span className="fw-bold">{userStats.total_bookings}</span>
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">Total Spent</span>
+                    <span className="fw-bold">${userStats.total_spent?.toFixed(2) || '0.00'}</span>
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">Loyalty Points</span>
+                    <span className="fw-bold text-primary">{userStats.loyalty_points} pts</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">Member Since</span>
+                    <span className="fw-bold">{userStats.member_since ? new Date(userStats.member_since).toLocaleDateString() : 'N/A'}</span>
+                  </div>
+                </div>
+              </Card.Body>
+            </Card>
+            )}
           </Col>
 
           {/* ================= Form ================= */}

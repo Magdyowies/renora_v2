@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom'
 import { Container, Row, Col, Card, Form, Button, Badge } from 'react-bootstrap'
-import { useState } from 'react'
+import { useState, useEffect } from 'react' // Import useEffect
+import vehiclesService from '../services/vehiclesService' // Import vehiclesService
+import LoadingSpinner from '../components/LoadingSpinner' // Import LoadingSpinner
+import toast from 'react-hot-toast' // Import toast
 
 export default function Search() {
   const allVehicles = [

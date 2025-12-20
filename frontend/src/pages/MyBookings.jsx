@@ -1,58 +1,48 @@
 import { Container, Row, Col, Card, Badge, Button, Tab, Tabs } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import bookingsService from '../services/bookingsService' // Import bookingsService
+import LoadingSpinner from '../components/LoadingSpinner'
+import toast from 'react-hot-toast'
+import { format } from 'date-fns'
+
 
 export default function MyBookings() {
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
 
-  // Mock bookings for the current user
-  const userBookings = [
-    {
-      id: 1,
-      vehicleId: 1,
-      vehicleName: 'Tesla Model Y Performance',
-      vehicleImage: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400',
-      startDate: '2024-12-20',
-      endDate: '2024-12-25',
-      status: 'active',
-      total: 645,
-      pricePerDay: 129,
-      days: 5,
-      pickupLocation: 'San Francisco Airport'
-    },
-    {
-      id: 2,
-      vehicleId: 2,
-      vehicleName: 'Porsche 911 Carrera',
-      vehicleImage: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400',
-      startDate: '2024-11-15',
-      endDate: '2024-11-18',
-      status: 'completed',
-      total: 1050,
-      pricePerDay: 350,
-      days: 3,
-      pickupLocation: 'Downtown San Francisco'
-    },
-    {
-      id: 3,
-      vehicleId: 4,
-      vehicleName: 'BMW M4 Competition',
-      vehicleImage: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400',
-      startDate: '2025-01-10',
-      endDate: '2025-01-15',
-      status: 'upcoming',
-      total: 1495,
-      pricePerDay: 299,
-      days: 5,
-      pickupLocation: 'San Francisco Airport'
+  const [bookings, setBookings] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setLoading(false)
+      return
     }
-  ]
+
+    const fetchBookings = async () => {
+      try {
+        const data = await bookingsService.getUserBookings()
+        setBookings(data)
+      } catch (err) {
+        setError('Failed to fetch bookings.')
+        toast.error('Failed to fetch bookings.')
+        console.error('Fetch bookings error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBookings()
+  }, [isAuthenticated])
 
   const getStatusBadge = (status) => {
     const variants = {
+      pending: 'warning',
+      confirmed: 'info',
       active: 'success',
       completed: 'secondary',
-      upcoming: 'info',
       cancelled: 'danger',
     }
     return variants[status] || 'secondary'
@@ -60,62 +50,74 @@ export default function MyBookings() {
 
   const getStatusIcon = (status) => {
     const icons = {
+      pending: '⏳',
+      confirmed: '✅',
       active: '🚗',
-      completed: '✓',
-      upcoming: '📅',
-      cancelled: '✗',
+      completed: '✔️',
+      cancelled: '❌',
     }
     return icons[status] || '📋'
   }
 
-  const activeBookings = userBookings.filter(b => b.status === 'active')
-  const upcomingBookings = userBookings.filter(b => b.status === 'upcoming')
-  const pastBookings = userBookings.filter(b => b.status === 'completed' || b.status === 'cancelled')
+  // Filter bookings based on their actual status from backend
+  const activeBookings = bookings.filter(b => b.status === 'active')
+  const upcomingBookings = bookings.filter(b => b.status === 'pending' || b.status === 'confirmed')
+  const pastBookings = bookings.filter(b => b.status === 'completed' || b.status === 'cancelled')
 
   const BookingCard = ({ booking }) => (
     <Card className="shadow-sm border-0 mb-4 card-hover" style={{ borderRadius: '12px' }}>
       <Card.Body className="p-4">
         <Row className="align-items-center">
           <Col md={3}>
-            <img 
-              src={booking.vehicleImage} 
-              alt={booking.vehicleName}
-              style={{ 
-                width: '100%', 
-                height: '120px', 
-                objectFit: 'cover', 
-                borderRadius: '8px' 
+            <img
+              src={booking.vehicle.primary_image?.image || 'https://via.placeholder.com/120x80'}
+              alt={booking.vehicle.name}
+              style={{
+                width: '100%',
+                height: '120px',
+                objectFit: 'cover',
+                borderRadius: '8px'
               }}
             />
           </Col>
           <Col md={6}>
             <div className="d-flex align-items-center mb-2">
-              <h5 className="fw-bold mb-0 me-2">{booking.vehicleName}</h5>
+              <h5 className="fw-bold mb-0 me-2">{booking.vehicle.name}</h5>
               <Badge bg={getStatusBadge(booking.status)} className="text-capitalize">
                 {getStatusIcon(booking.status)} {booking.status}
               </Badge>
             </div>
             <div className="text-muted small mb-2">
-              <div>📅 {booking.startDate} to {booking.endDate}</div>
-              <div>📍 {booking.pickupLocation}</div>
-              <div>💰 ${booking.pricePerDay}/day × {booking.days} days</div>
+              <div>📅 {format(new Date(booking.start_date), 'MMM dd, yyyy')} to {format(new Date(booking.end_date), 'MMM dd, yyyy')}</div>
+              <div>📍 {booking.pickup_location}</div>
+              <div>💰 ${booking.total_price?.toFixed(2)}</div>
             </div>
           </Col>
           <Col md={3} className="text-md-end">
             <div className="mb-2">
               <div className="text-muted small">Total</div>
-              <h4 className="fw-bold text-primary mb-3">${booking.total}</h4>
+              <h4 className="fw-bold text-primary mb-3">${booking.total_price?.toFixed(2)}</h4>
             </div>
             <div className="d-flex flex-column gap-2">
-              <Button 
+              <Button
                 as={Link}
-                to={`/vehicle/${booking.vehicleId}`}
-                variant="outline-primary" 
+                to={`/vehicle/${booking.vehicle.id}`}
+                variant="outline-primary"
                 size="sm"
               >
                 View Vehicle
               </Button>
-              {booking.status === 'upcoming' && (
+              {booking.status === 'pending' && ( // Only show Pay Now for pending bookings
+                <Button
+                  as={Link}
+                  to={`/payment/${booking.id}`} // Link to payment page with booking ID
+                  variant="primary"
+                  size="sm"
+                >
+                  Pay Now
+                </Button>
+              )}
+              {(booking.status === 'pending' || booking.status === 'confirmed') && (
                 <Button variant="outline-danger" size="sm">
                   Cancel Booking
                 </Button>
@@ -126,6 +128,21 @@ export default function MyBookings() {
       </Card.Body>
     </Card>
   )
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return (
+      <Container className="py-5 text-center">
+        <Alert variant="danger">{error}</Alert>
+        <Button onClick={() => window.location.reload()} variant="primary">
+          Reload Page
+        </Button>
+      </Container>
+    );
+  }
 
   return (
     <div style={{ backgroundColor: '#fafafa', minHeight: '100vh', paddingTop: '2rem', paddingBottom: '4rem' }}>
@@ -141,7 +158,7 @@ export default function MyBookings() {
             <Card className="border-0 shadow-sm">
               <Card.Body>
                 <div className="d-flex align-items-center">
-                  <div 
+                  <div
                     style={{
                       width: '50px',
                       height: '50px',
@@ -168,7 +185,7 @@ export default function MyBookings() {
             <Card className="border-0 shadow-sm">
               <Card.Body>
                 <div className="d-flex align-items-center">
-                  <div 
+                  <div
                     style={{
                       width: '50px',
                       height: '50px',
@@ -195,7 +212,7 @@ export default function MyBookings() {
             <Card className="border-0 shadow-sm">
               <Card.Body>
                 <div className="d-flex align-items-center">
-                  <div 
+                  <div
                     style={{
                       width: '50px',
                       height: '50px',
@@ -212,7 +229,7 @@ export default function MyBookings() {
                   </div>
                   <div>
                     <div className="text-muted small">Total Bookings</div>
-                    <h3 className="fw-bold mb-0">{userBookings.length}</h3>
+                    <h3 className="fw-bold mb-0">{bookings.length}</h3>
                   </div>
                 </div>
               </Card.Body>
@@ -224,8 +241,8 @@ export default function MyBookings() {
         <Card className="border-0 shadow-sm">
           <Card.Body className="p-4">
             <Tabs defaultActiveKey="all" className="mb-4">
-              <Tab eventKey="all" title={`All (${userBookings.length})`}>
-                {userBookings.length === 0 ? (
+              <Tab eventKey="all" title={`All (${bookings.length})`}>
+                {bookings.length === 0 ? (
                   <div className="text-center py-5">
                     <div className="mb-3" style={{ fontSize: '4rem' }}>🚗</div>
                     <h4 className="fw-bold mb-2">No bookings yet</h4>
@@ -235,7 +252,7 @@ export default function MyBookings() {
                     </Button>
                   </div>
                 ) : (
-                  userBookings.map(booking => (
+                  bookings.map(booking => (
                     <BookingCard key={booking.id} booking={booking} />
                   ))
                 )}
