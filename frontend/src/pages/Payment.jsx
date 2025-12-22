@@ -31,7 +31,7 @@ export default function Payment() {
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const data = await bookingsService.getBookingById(bookingId);
+        const data = await bookingsService.getBookingDetails(bookingId);
         setBooking(data);
       } catch (err) {
         setError("Failed to load booking details");

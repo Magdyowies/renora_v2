@@ -7,13 +7,13 @@ from django.contrib.auth import get_user_model
 
 
 class BookingSerializer(serializers.ModelSerializer):
-    vehicle_details = VehicleListSerializer(source='vehicle', read_only=True)
+    vehicle = VehicleListSerializer(read_only=True)
     customer_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
         fields = [
-            'id', 'vehicle', 'vehicle_details', 'customer_name', 'pickup_date', 'return_date',
+            'id', 'vehicle', 'customer_name', 'pickup_date', 'return_date',
             'pickup_location', 'return_location', 'total_days', 'base_price',
             'discount_amount', 'total_price', 'promo_code', 'status', 'notes', 'created_at'
         ]
@@ -116,20 +116,20 @@ class AdminBookingSerializer(serializers.ModelSerializer):
     promo_code = serializers.CharField(required=False, allow_blank=True, write_only=True)
     customer = serializers.PrimaryKeyRelatedField(queryset=get_user_model().objects.all())
     
-    vehicle_details = VehicleListSerializer(source='vehicle', read_only=True)
+    vehicle = VehicleListSerializer(read_only=True)
     customer_name = serializers.CharField(source='customer.get_full_name', read_only=True)
 
     class Meta:
         model = Booking
         fields = [
-            'id', 'customer', 'customer_name', 'vehicle', 'vehicle_details', 
+            'id', 'customer', 'customer_name', 'vehicle',
             'pickup_date', 'return_date', 'pickup_location', 'return_location', 
             'total_days', 'base_price', 'discount_amount', 'total_price', 
             'promo_code', 'status', 'notes', 'created_at'
         ]
         read_only_fields = [
-            'id', 'customer_name', 'vehicle_details', 'total_days', 'base_price', 
-            'discount_amount', 'total_price', 'created_at'
+            'id', 'customer_name', 'vehicle', 'total_days', 'base_price',
+            'discount_amount', 'total_price', 'created_.at'
         ]
 
     def validate(self, attrs):

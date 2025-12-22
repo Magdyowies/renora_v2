@@ -38,7 +38,7 @@ const createBooking = async (bookingData) => {
 
 const getUserBookings = async () => {
   try {
-    const response = await api.get('/bookings/');
+    const response = await api.get('/bookings/my/');
     // Expected response: array of booking objects
     return response.data;
   } catch (error) {
@@ -47,10 +47,21 @@ const getUserBookings = async () => {
   }
 };
 
+const cancelBooking = async (bookingId) => {
+  try {
+    const response = await api.post(`/bookings/${bookingId}/cancel/`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error cancelling booking ${bookingId}:`, error);
+    throw error;
+  }
+}
+
 const bookingsService = {
   getBookingDetails,
   createBooking,
   getUserBookings,
+  cancelBooking,
 };
 
 export default bookingsService;

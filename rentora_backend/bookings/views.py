@@ -9,7 +9,7 @@ class BookingAdminViewSet(viewsets.ModelViewSet):
     """
     Admin-only ViewSet for full CRUD operations on Bookings.
     """
-    queryset = Booking.objects.all().order_by('-created_at')
+    queryset = Booking.objects.select_related('vehicle', 'customer').all().order_by('-created_at')
     permission_classes = [permissions.IsAdminUser]
 
     def get_serializer_class(self):
@@ -39,7 +39,7 @@ class MyBookingsView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Booking.objects.filter(customer=self.request.user)
+        return Booking.objects.select_related('vehicle', 'customer').filter(customer=self.request.user)
 
 
 class BookingCancelView(APIView):
@@ -64,7 +64,7 @@ class VendorBookingsView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Booking.objects.filter(vehicle__vendor=self.request.user)
+        return Booking.objects.select_related('vehicle', 'customer').filter(vehicle__vendor=self.request.user)
 
 
 class BookingStatusUpdateView(APIView):
@@ -92,18 +92,18 @@ class BookingStatusUpdateView(APIView):
 
 
 class AllBookingsView(generics.ListAPIView):
-    queryset = Booking.objects.all()
+    queryset = Booking.objects.select_related('vehicle', 'customer').all()
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAdminUser]
 
 
 class BookingUpdateView(generics.RetrieveUpdateAPIView):
-    queryset = Booking.objects.all()
+    queryset = Booking.objects.select_related('vehicle', 'customer').all()
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
         if user.role == 'admin':
-            return Booking.objects.all()
-        return Booking.objects.filter(customer=user)
+            return Booking.objects.select_related('vehicle', 'customer').all()
+        return Booking.objects.select_related('vehicle', 'customer').filter(customer=user)
