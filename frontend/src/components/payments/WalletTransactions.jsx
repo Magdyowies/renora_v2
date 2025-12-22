@@ -47,9 +47,9 @@ const WalletTransactions = () => {
                 <div>
                   <div className="fw-semibold text-capitalize">
                     {tx.transaction_type}{' '}
-                    {tx.transaction_type === 'payment' && <Badge bg="danger">-{tx.amount}</Badge>}
-                    {tx.transaction_type === 'refund' && <Badge bg="success">+{tx.amount}</Badge>}
-                    {tx.transaction_type === 'credit' && <Badge bg="info">+{tx.amount}</Badge>}
+                    {tx.transaction_type === 'payment' && <Badge bg="danger">-{Number(tx.amount)}</Badge>}
+                    {tx.transaction_type === 'refund' && <Badge bg="success">+{Number(tx.amount)}</Badge>}
+                    {tx.transaction_type === 'credit' && <Badge bg="info">+{Number(tx.amount)}</Badge>}
                   </div>
                   <small className="text-muted">{tx.description}</small>
                   {tx.reference_id && (
@@ -58,7 +58,7 @@ const WalletTransactions = () => {
                 </div>
                 <div className="text-end">
                   <span className="fw-bold">
-                    {tx.transaction_type === 'payment' ? '-' : '+'}{tx.amount?.toFixed(2)}{' EGP'}
+                    {tx.transaction_type === 'payment' ? '-' : '+'}{Number(tx.amount)?.toFixed(2)}{' EGP'}
                   </span>
                   <small className="text-muted d-block">
                     {format(new Date(tx.created_at), 'MMM dd, yyyy HH:mm')}

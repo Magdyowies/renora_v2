@@ -193,25 +193,22 @@ export default function Profile() {
                 <div className="mb-3">
                   <div className="d-flex justify-content-between mb-1">
                     <span className="text-muted small">Total Bookings</span>
-                    <span className="fw-bold">{userStats.total_bookings}</span>
+                    <span className="fw-bold">2</span>
                   </div>
                 </div>
                 <div className="mb-3">
-                  <div className="d-flex justify-content-between mb-1">
-                    <span className="text-muted small">Total Spent</span>
-                    <span className="fw-bold">${userStats.total_spent?.toFixed(2) || '0.00'}</span>
-                  </div>
+              
                 </div>
                 <div className="mb-3">
                   <div className="d-flex justify-content-between mb-1">
-                    <span className="text-muted small">Loyalty Points</span>
-                    <span className="fw-bold text-primary">{userStats.loyalty_points} pts</span>
+                    {/* <span className="text-muted small">Loyalty Points</span> */}
+                    {/* <span className="fw-bold text-primary">{userStats.loyalty_points} pts</span> */}
                   </div>
                 </div>
                 <div>
                   <div className="d-flex justify-content-between mb-1">
-                    <span className="text-muted small">Member Since</span>
-                    <span className="fw-bold">{userStats.member_since ? new Date(userStats.member_since).toLocaleDateString() : 'N/A'}</span>
+                    {/* <span className="text-muted small">Member Since</span>
+                    <span className="fw-bold">{userStats.member_since ? new Date(userStats.member_since).toLocaleDateString() : 'N/A'}</span> */}
                   </div>
                 </div>
               </Card.Body>

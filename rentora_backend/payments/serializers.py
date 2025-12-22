@@ -1,11 +1,17 @@
 from rest_framework import serializers
 from .models import Payment, Wallet, WalletTransaction, PromoCode
+from bookings.models import Booking
 
 
 class WalletSerializer(serializers.ModelSerializer):
+    balance = serializers.SerializerMethodField()
+
     class Meta:
         model = Wallet
         fields = ['id', 'balance', 'created_at', 'updated_at']
+
+    def get_balance(self, obj):
+        return float(obj.balance)
 
 
 class WalletTransactionSerializer(serializers.ModelSerializer):
@@ -20,10 +26,18 @@ class PaymentSerializer(serializers.ModelSerializer):
         fields = ['id', 'booking', 'amount', 'method', 'status', 'transaction_id', 'created_at']
 
 
-class PaymentCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Payment
-        fields = ['booking', 'method']
+from bookings.models import Booking
+class PaymentCreateSerializer(serializers.Serializer):
+    booking_id = serializers.IntegerField()
+    method = serializers.CharField()
+    promo_code = serializers.CharField(required=False, allow_blank=True)
+
+    def validate_booking_id(self, value):
+        try:
+            booking = Booking.objects.get(id=value)
+            return booking
+        except Booking.DoesNotExist:
+            raise serializers.ValidationError("Booking not found.")
 
 
 class PromoCodeSerializer(serializers.ModelSerializer):

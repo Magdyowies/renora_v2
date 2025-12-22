@@ -48,6 +48,7 @@ const DashboardPage = () => {
   const [revenueData, setRevenueData] = useState([]);
   const [bookingData, setBookingData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,6 +63,7 @@ const DashboardPage = () => {
         setBookingData(bookingRes.data);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
+        setError("Failed to load dashboard data. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -71,6 +73,10 @@ const DashboardPage = () => {
 
   if (loading) {
     return <div className="text-center">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-red-500">{error}</div>;
   }
 
   return (

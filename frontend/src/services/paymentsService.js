@@ -2,7 +2,7 @@ import api from './api';
 
 const getWalletBalance = async () => {
   try {
-    const response = await api.get('/wallet/');
+    const response = await api.get('/payments/wallet/');
     // Expected response: { "balance": number, "currency": "EGP" }
     return response.data;
   } catch (error) {
@@ -13,7 +13,7 @@ const getWalletBalance = async () => {
 
 const getWalletTransactions = async () => {
   try {
-    const response = await api.get('/wallet/transactions/');
+    const response = await api.get('/payments/wallet/transactions/');
     // Expected response: array of transaction objects
     return response.data;
   } catch (error) {
@@ -35,7 +35,7 @@ const getPaymentHistory = async () => {
 
 const validatePromoCode = async (code, booking_amount) => {
   try {
-    const response = await api.post('/payments/validate-promo/', {
+    const response = await api.post('/payments/promo-codes/validate/', {
       code,
       booking_amount,
     });
@@ -58,6 +58,7 @@ const createPayment = async (booking_id, method, promo_code = null) => {
     return response.data;
   } catch (error) {
     console.error('Error creating payment:', error);
+    console.error('Payment creation error details:', error.response?.data || error.message);
     throw error;
   }
 };

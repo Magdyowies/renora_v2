@@ -61,7 +61,7 @@ const PaymentHistory = () => {
                   <small className="text-muted">Method: {payment.method}</small>
                 </div>
                 <div className="text-end">
-                  <span className="fw-bold">${payment.amount?.toFixed(2)}</span>
+                  <span className="fw-bold">${Number(payment.amount)?.toFixed(2)}</span>
                   <Badge bg={getStatusBadge(payment.status)} className="ms-2 text-capitalize">
                     {payment.status}
                   </Badge>

@@ -50,13 +50,11 @@ export default function Payment() {
     try {
       setProcessing(true);
 
-      await paymentsService.payBooking(bookingId, {
-        method: paymentMethod,
-        promo_code: promoResult?.code || null,
-      });
+      const promoCodeToSend = promoResult?.code || "";
+      await paymentsService.createPayment(bookingId, paymentMethod, promoCodeToSend);
 
       toast.success("Payment completed successfully");
-      navigate("/dashboard");
+      navigate("/dashboard", { state: { bookingCompleted: true } });
     } catch (err) {
       toast.error("Payment failed. Please try again.");
     } finally {
@@ -104,7 +102,7 @@ export default function Payment() {
                 disabled={processing || booking.status !== "pending"}
                 onClick={handlePayment}
               >
-                {processing ? "Processing..." : `Pay $${finalAmount.toFixed(2)}`}
+                {processing ? "Processing..." : `Pay $${Number(finalAmount).toFixed(2)}`}
               </Button>
             </Card.Body>
           </Card>
@@ -158,7 +156,7 @@ export default function Payment() {
 
                 <ListGroup.Item className="d-flex justify-content-between px-0 fw-bold">
                   <span>Total</span>
-                  <span>${finalAmount.toFixed(2)}</span>
+                  <span>${Number(finalAmount).toFixed(2)}</span>
                 </ListGroup.Item>
               </ListGroup>
             </Card.Body>

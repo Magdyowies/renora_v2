@@ -143,6 +143,9 @@ class VehicleImageDeleteView(generics.DestroyAPIView):
 
 from bookings.models import Booking
 from datetime import datetime
+import os
+from django.conf import settings
+from django.http import JsonResponse
 
 
 class AdminVehicleViewSet(viewsets.ModelViewSet):
@@ -188,3 +191,4 @@ class VehicleAvailabilityView(APIView):
             return Response({'available': False}, status=status.HTTP_200_OK)
 
         return Response({'available': True}, status=status.HTTP_200_OK)
+

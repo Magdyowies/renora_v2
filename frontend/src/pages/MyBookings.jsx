@@ -1,5 +1,5 @@
 import { Container, Row, Col, Card, Badge, Button, Tab, Tabs } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom' // Import useLocation
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import bookingsService from '../services/bookingsService' // Import bookingsService
@@ -10,6 +10,7 @@ import { format } from 'date-fns'
 
 export default function MyBookings() {
   const { isAuthenticated } = useAuth()
+  const location = useLocation(); // Initialize useLocation
 
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
@@ -35,7 +36,9 @@ export default function MyBookings() {
     }
 
     fetchBookings()
-  }, [isAuthenticated])
+  }, [isAuthenticated, location.state?.bookingCompleted]) // Add location.state?.bookingCompleted to dependencies
+
+
 
   const getStatusBadge = (status) => {
     const variants = {
@@ -58,6 +61,16 @@ export default function MyBookings() {
     }
     return icons[status] || '📋'
   }
+
+  const handleCancelBooking = async (bookingId) => {
+    try {
+      await bookingsService.cancelBooking(bookingId);
+      toast.success('Booking cancelled successfully');
+      setBookings(bookings.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b));
+    } catch (err) {
+      toast.error('Failed to cancel booking.');
+    }
+  };
 
   // Filter bookings based on their actual status from backend
   const activeBookings = bookings.filter(b => b.status === 'active')
@@ -88,15 +101,15 @@ export default function MyBookings() {
               </Badge>
             </div>
             <div className="text-muted small mb-2">
-              <div>📅 {format(new Date(booking.start_date), 'MMM dd, yyyy')} to {format(new Date(booking.end_date), 'MMM dd, yyyy')}</div>
+              <div>📅 {format(new Date(booking.pickup_date), 'MMM dd, yyyy')} to {format(new Date(booking.return_date), 'MMM dd, yyyy')}</div>
               <div>📍 {booking.pickup_location}</div>
-              <div>💰 ${booking.total_price?.toFixed(2)}</div>
+              <div>💰 ${Number(booking.total_price)?.toFixed(2)}</div>
             </div>
           </Col>
           <Col md={3} className="text-md-end">
             <div className="mb-2">
               <div className="text-muted small">Total</div>
-              <h4 className="fw-bold text-primary mb-3">${booking.total_price?.toFixed(2)}</h4>
+              <h4 className="fw-bold text-primary mb-3">${Number(booking.total_price)?.toFixed(2)}</h4>
             </div>
             <div className="d-flex flex-column gap-2">
               <Button
@@ -118,7 +131,7 @@ export default function MyBookings() {
                 </Button>
               )}
               {(booking.status === 'pending' || booking.status === 'confirmed') && (
-                <Button variant="outline-danger" size="sm">
+                <Button variant="outline-danger" size="sm" onClick={() => handleCancelBooking(booking.id)}>
                   Cancel Booking
                 </Button>
               )}
