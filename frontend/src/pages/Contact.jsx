@@ -213,8 +213,8 @@ export default function Contact() {
                     </div>
                     <div>
                       <h6 className="fw-bold mb-1">Email</h6>
-                      <p className="text-muted mb-0">info@renato.com</p>
-                      <p className="text-muted mb-0">support@renato.com</p>
+                      <p className="text-muted mb-0">info@rentora.com</p>
+                      <p className="text-muted mb-0">support@rentora.com</p>
                     </div>
                   </div>
 
