@@ -1,39 +1,29 @@
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
+import axios from 'axios'
 
 export default function Home() {
   const { user } = useAuth()
+  const [vehicles, setVehicles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const featuredVehicles = [
-    {
-      id: 1,
-      name: 'Tesla Model 3',
-      category: 'Electric',
-      price: 89,
-      image: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400',
-      rating: 4.8,
-      available: true
-    },
-    {
-      id: 2,
-      name: 'BMW X5',
-      category: 'SUV',
-      price: 120,
-      image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400',
-      rating: 4.9,
-      available: true
-    },
-    {
-      id: 3,
-      name: 'Mercedes C-Class',
-      category: 'Sedan',
-      price: 95,
-      image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400',
-      rating: 4.7,
-      available: false
-    },
-  ]
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const response = await axios.get('/api/vehicles/')
+        setVehicles(response.data)
+      } catch (err) {
+        setError('Failed to fetch vehicles.')
+        console.error('Error fetching vehicles:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchVehicles()
+  }, [])
 
   const features = [
     { icon: '🚗', title: 'Wide Selection', description: 'Choose from hundreds of vehicles' },
@@ -41,6 +31,24 @@ export default function Home() {
     { icon: '📱', title: 'Easy Booking', description: 'Book in minutes online' },
     { icon: '🛡️', title: 'Fully Insured', description: 'All vehicles are fully covered' },
   ]
+
+  if (loading) {
+    return (
+      <Container className="my-5 py-5 text-center">
+        <h2 className="fw-bold mb-0">Featured Vehicles</h2>
+        <p>Loading featured vehicles...</p>
+      </Container>
+    )
+  }
+
+  if (error) {
+    return (
+      <Container className="my-5 py-5 text-center text-danger">
+        <h2 className="fw-bold mb-0">Featured Vehicles</h2>
+        <p>{error}</p>
+      </Container>
+    )
+  }
 
   return (
     <div>
@@ -136,17 +144,17 @@ export default function Home() {
           </Button>
         </div>
         <Row>
-          {featuredVehicles.map((vehicle) => (
+          {vehicles && Array.isArray(vehicles) && vehicles.slice(0, 3).map((vehicle) => (
             <Col key={vehicle.id} md={4} className="mb-4">
               <Card className="vehicle-card shadow-sm h-100">
                 <div className="position-relative">
                   <Card.Img 
                     variant="top" 
-                    src={vehicle.image} 
+                    src={vehicle.main_image} 
                     className="vehicle-image"
                     alt={vehicle.name}
                   />
-                  {vehicle.available ? (
+                  {vehicle.status === 'available' ? (
                     <Badge bg="success" className="position-absolute top-0 end-0 m-3">
                       Available
                     </Badge>
@@ -160,7 +168,7 @@ export default function Home() {
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <div>
                       <Card.Title className="mb-1">{vehicle.name}</Card.Title>
-                      <Badge bg="secondary" className="mb-2">{vehicle.category}</Badge>
+                      <Badge bg="secondary" className="mb-2">{vehicle.category.name}</Badge>
                     </div>
                     <div className="text-end">
                       <div className="text-warning">⭐ {vehicle.rating}</div>
@@ -168,15 +176,15 @@ export default function Home() {
                   </div>
                   <div className="d-flex justify-content-between align-items-center mt-3">
                     <div className="price-tag">
-                      ${vehicle.price}<small className="text-muted fs-6">/day</small>
+                      ${vehicle.price_per_day}<small className="text-muted fs-6">/day</small>
                     </div>
                     <Button 
                       as={Link} 
                       to={`/vehicle/${vehicle.id}`} 
                       variant="primary"
-                      disabled={!vehicle.available}
+                      disabled={vehicle.status !== 'available'}
                     >
-                      {vehicle.available ? 'View Details' : 'Unavailable'}
+                      {vehicle.status === 'available' ? 'View Details' : 'Unavailable'}
                     </Button>
                   </div>
                 </Card.Body>
