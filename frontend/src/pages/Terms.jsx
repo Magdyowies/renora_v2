@@ -15,13 +15,13 @@ export default function Terms() {
               <section className="mb-5">
                 <h3 className="fw-bold mb-3">1. Acceptance of Terms</h3>
                 <p className="text-muted">
-                  By accessing and using Renato's vehicle rental services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+                  By accessing and using Rentora's vehicle rental services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
                 </p>
               </section>
 
               <section className="mb-5">
                 <h3 className="fw-bold mb-3">2. Rental Requirements</h3>
-                <p className="text-muted mb-3">To rent a vehicle from Renato, you must:</p>
+                <p className="text-muted mb-3">To rent a vehicle from Rentora, you must:</p>
                 <ul className="text-muted">
                   <li>Be at least 21 years of age (25 for luxury vehicles)</li>
                   <li>Possess a valid driver's license</li>
@@ -115,7 +115,7 @@ export default function Terms() {
                 </p>
                 <ul className="text-muted">
                   <li>Contact local authorities immediately</li>
-                  <li>Notify Renato within 24 hours</li>
+                  <li>Notify Rentora within 24 hours</li>
                   <li>Complete an incident report</li>
                   <li>Obtain contact information from all parties involved</li>
                   <li>Take photos of all damage</li>

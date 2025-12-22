@@ -13,7 +13,7 @@ export default function Footer() {
               src={"/favicon.png"}
               alt="Rentora Logo"
               style={{ height: "40px", width: "auto" }}
-            />Renato</h5>
+            />Rentora</h5>
             <p className="text-white-50 text-decoration-none">
               Your trusted partner for vehicle rentals.
             </p>

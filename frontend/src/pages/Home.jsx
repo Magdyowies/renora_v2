@@ -112,7 +112,7 @@ export default function Home() {
 
       {/* Features Section */}
       <Container className="my-5 py-5">
-        <h2 className="text-center mb-5 fw-bold">Why Choose Renato?</h2>
+        <h2 className="text-center mb-5 fw-bold">Why Choose Rentora?</h2>
         <Row>
           {features.map((feature, index) => (
             <Col key={index} md={3} sm={6} className="mb-4">
