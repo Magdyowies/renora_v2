@@ -56,7 +56,7 @@ export default function Navbar() {
                 <NavDropdown 
                   title={
                     <span style={{ color: '#4a5568' }}>
-                      👤 {isAdmin ? 'Admin' : user?.name}
+                      Hello, {isAdmin ? 'Admin' : user?.name}
                     </span>
                   } 
                   id="user-dropdown"
