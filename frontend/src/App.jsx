@@ -27,6 +27,7 @@ import FAQ from './pages/FAQ'
 import Terms from './pages/Terms'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/ProtectedRoute'
+import BookingSuccess from './pages/BookingSuccess' // Import new component
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -64,7 +65,8 @@ function App() {
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/my-bookings" element={<MyBookings />} />
                   <Route path="/profile" element={<Profile />} />
-                  <Route path="/payment/:vehicleId" element={<Payment />} />
+                  <Route path="/booking-success/:bookingId" element={<BookingSuccess />} /> {/* New route */}
+                  <Route path="/payment/:bookingId" element={<Payment />} /> {/* Corrected route */}
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
@@ -72,7 +74,7 @@ function App() {
             <Footer />
             <Chatbot />
           </div>
-          <Toaster 
+          <Toaster
             position="top-right"
             toastOptions={{
               duration: 4000,
@@ -100,6 +102,4 @@ function App() {
       </AuthProvider>
     </QueryClientProvider>
   )
-}
-
-export default App
+}export default App

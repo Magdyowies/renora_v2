@@ -27,19 +27,10 @@ const logout = () => {
   localStorage.removeItem('tokens');
 };
 
-/* ---------------- VERIFY TOKEN ---------------- */
-const verifyToken = () => {
-  const tokens = JSON.parse(localStorage.getItem('tokens'));
-  if (!tokens) return Promise.reject('No token found');
-
-  return api.get('/auth/verify-token/');
-};
-
 const authService = {
   login,
   register,
   logout,
-  verifyToken,
 };
 
 export default authService;
