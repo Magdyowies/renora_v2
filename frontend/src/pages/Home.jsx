@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
 
 export default function Home() {
-  const { isAuthenticated } = useAuth()
+  const { user } = useAuth()
 
   const featuredVehicles = [
     {
@@ -56,37 +56,49 @@ export default function Home() {
               to coastal roads, experience the freedom of the open road.
             </p>
             
-            {/* Search Box */}
+            {/* Centered Search Box */}
             <Row className="justify-content-center">
-              <Col lg={10}>
-                <Card className="shadow-lg border-0">
+              <Col lg={8} xl={7}>
+                <Card className="shadow-lg border-0" style={{ borderRadius: '16px' }}>
                   <Card.Body className="p-4">
-                    <Row className="g-3 align-items-end">
-                      <Col md={4}>
-                        <label className="form-label text-start d-block fw-semibold">Pick-up Location</label>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <label className="form-label text-start d-block fw-semibold mb-2">
+                           Pick-up Location
+                        </label>
                         <input 
                           type="text" 
                           className="form-control form-control-lg" 
-                          placeholder="Enter location"
+                          placeholder="City, airport, or address"
+                          style={{ borderRadius: '10px' }}
                         />
                       </Col>
-                      <Col md={4}>
-                        <label className="form-label text-start d-block fw-semibold">Pick-up Date</label>
+                      <Col md={6}>
+                        <label className="form-label text-start d-block fw-semibold mb-2">
+                          Pick-up Date
+                        </label>
                         <input 
                           type="date" 
                           className="form-control form-control-lg"
+                          style={{ borderRadius: '10px' }}
+                          placeholder="Select your pickup date"
                         />
                       </Col>
-                      <Col md={4}>
+                      <Col xs={12}>
                         <Button 
                           as={Link}
                           to="/search"
                           variant="primary" 
                           size="lg" 
                           className="w-100"
-                          style={{ padding: '0.75rem' }}
+                          style={{ 
+                            padding: '0.875rem',
+                            borderRadius: '10px',
+                            fontSize: '1.1rem',
+                            fontWeight: '600'
+                          }}
                         >
-                          Search Vehicles
+                           Search Vehicles
                         </Button>
                       </Col>
                     </Row>
@@ -174,14 +186,14 @@ export default function Home() {
         </Row>
       </Container>
 
-      {/* CTA Section - Only show Sign Up if not logged in */}
+      {/* CTA Section */}
       <div className="bg-primary text-white py-5">
         <Container className="text-center">
           <h2 className="display-5 fw-bold mb-4">Ready to Hit the Road?</h2>
           <p className="lead mb-4">
-            {isAuthenticated ? 'Browse our collection and book your perfect ride' : 'Join thousands of satisfied customers'}
+            {user ? 'Browse our collection and book your perfect ride' : 'Join thousands of satisfied customers'}
           </p>
-          {isAuthenticated ? (
+          {user ? (
             <Button as={Link} to="/search" size="lg" variant="light" className="px-5 py-3">
               Browse Vehicles
             </Button>
