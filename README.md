@@ -1,38 +1,259 @@
-# Rentora: Full-Stack Vehicle Rental System
 
-## 1. Project Overview
 
-### What is Rentora?
 
-Rentora is a comprehensive, full-stack vehicle rental platform that connects vehicle owners (Vendors) with individuals looking to rent vehicles (Customers). It provides a seamless, end-to-end experience for booking, payment, and fleet management, all overseen by a central administrative team.
+# 🚗 Rentora — Vehicle Rental Platform
 
-The system is composed of:
-- **A Django REST Framework backend** that powers all business logic.
-- **Two React front-end applications**: one for customers and vendors, and a separate, dedicated dashboard for administrators.
-- **A PostgreSQL database** for data persistence.
+## 🌟 Project Overview
 
-### What Problem Does It Solve?
+**Rentora** is a full-stack vehicle rental platform built as a graduation project and professional portfolio piece.  
+It streamlines vehicle booking and fleet management by connecting customers with vendors through a secure, scalable backend and a modern, responsive frontend.
 
-For vehicle owners, Rentora solves the problem of fleet management, booking coordination, and payment processing. It offers a centralized platform to list vehicles, manage availability, and securely receive payments.
+The system supports multi-role access (Customer, Vendor, Admin), real-time availability, secure payments, and an AI-powered chat assistant.
 
-For customers, Rentora simplifies the process of finding and booking rental vehicles. It provides a searchable, transparent marketplace with clear pricing and a straightforward booking and payment flow.
+---
 
-For administrators, it offers a powerful dashboard to manage users, oversee transactions, resolve disputes, and ensure the smooth operation of the entire platform.
+## 🛠️ Tech Stack
 
-### Who Are the Users?
+### Backend
+- **Framework:** Django 5.x
+- **API:** Django REST Framework (DRF)
+- **Language:** Python 3.12
+- **Database:** PostgreSQL (Dockerized)
+- **Authentication:** Custom User Model + SimpleJWT (Access & Refresh Tokens)
+- **Payments:** Stripe (Webhooks)
+- **AI:** OpenAI API (configurable model)
 
-The system is designed for three primary user roles:
+### Frontend
+- **Framework:** React
+- **Styling:** Tailwind CSS
+- **Routing:** React Router
+- **API Client:** Axios / Fetch
 
-1.  **Customer**: The end-user who browses, books, and pays for vehicle rentals. Customers can also manage their bookings and leave reviews after a rental is complete.
-2.  **Vendor**: An individual or business that owns and lists vehicles for rent on the platform. Vendors can manage their vehicle listings, track earnings, and view bookings for their fleet.
-3.  **Admin**: A superuser with complete oversight of the system. Admins use a dedicated dashboard to manage all users (customers and vendors), vehicles, bookings, payments, and other platform-wide settings.
+---
 
-### High-Level System Flow
+## ✨ Core Features
 
-1.  **Onboarding**: A user signs up and is assigned a role (typically `Customer` by default). An admin can later elevate a user to a `Vendor` or `Admin` role.
-2.  **Listing**: A `Vendor` logs in, lists their vehicles, and sets details like pricing, availability, and vehicle specifications.
-3.  **Discovery & Booking**: A `Customer` searches for vehicles, views details, and makes a booking for a specific date range.
-4.  **Payment**: The customer proceeds to payment. The system calculates the total cost based on the daily rate and booking duration. The customer can pay using their wallet balance or a credit card (via Stripe). Promo codes can be applied for discounts.
-5.  **Rental Period**: During the rental period, the vehicle's availability is updated.
-6.  **Post-Rental**: After the booking is complete, the `Customer` can leave a review for the vehicle.
-7.  **Management**: `Vendors` can track their revenue and booking history. `Admins` can monitor all activity, manage disputes, and view system-wide reports.
+- 🔐 **Authentication & Authorization**
+  - JWT-based login & registration
+  - Role-based access control (Customer, Vendor, Admin)
+
+- 🚙 **Vehicle Management**
+  - Vendor-managed vehicle listings
+  - Categories, images, pricing, availability
+
+- 🔍 **Search & Filtering**
+  - Filter by category, price, transmission, location, etc.
+
+- 📅 **Booking System**
+  - Date-based booking
+  - Status lifecycle (Pending → Confirmed → Active → Completed / Cancelled)
+
+- 💳 **Payments & Wallet**
+  - Wallet balance & transactions
+  - Promo codes & discounts
+  - Stripe payment integration
+
+- ⭐ **Reviews & Ratings**
+  - Booking-linked reviews
+  - Vehicle rating aggregation
+
+- 🤖 **AI Chat Assistant**
+  - User guidance & vehicle recommendations
+  - Persistent chat sessions
+
+- 🛠️ **Admin Panel**
+  - Full Django Admin integration
+  - Manage users, vehicles, bookings, payments, and chats
+
+---
+
+## 🚀 Quick Start (Local Development)
+
+### Prerequisites
+- Docker & Docker Compose
+- Python 3.12
+- Node.js 18+
+
+---
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Magdyowies/rentora.git
+cd rentora
+````
+
+---
+
+### 2. Environment Variables
+
+Create a `.env` file inside `rentora_backend/`:
+
+```env
+# ==============================
+# Django Core Settings
+# ==============================
+DJANGO_SECRET_KEY=change-me-in-production
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+# ==============================
+# PostgreSQL Configuration
+# ==============================
+DB_NAME=rentora
+DB_USER=postgres
+DB_PASSWORD=root
+DB_HOST=db
+DB_PORT=5432
+
+# ==============================
+# JWT (SimpleJWT)
+# ==============================
+SIMPLE_JWT_ACCESS_TOKEN_LIFETIME_HOURS=24
+SIMPLE_JWT_REFRESH_TOKEN_LIFETIME_DAYS=7
+
+# ==============================
+# External Services
+# ==============================
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-3.5-turbo
+
+STRIPE_SECRET_KEY=your-stripe-secret-key
+STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
+
+# ==============================
+# CORS
+# ==============================
+CORS_ALLOW_ALL_ORIGINS=True
+CORS_ALLOW_CREDENTIALS=True
+```
+
+---
+
+### 3. Start PostgreSQL (Docker)
+
+```bash
+docker-compose up -d db
+```
+
+---
+
+### 4. Backend Setup (Django)
+
+```bash
+cd rentora_backend
+
+python3 -m venv venv
+source venv/bin/activate
+
+pip install -r requirements.txt
+
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Backend API will be available at:
+👉 `http://127.0.0.1:8000/api/`
+
+---
+
+### 5. Frontend Setup (React)
+
+```bash
+cd ../rentora_frontend
+
+npm install
+npm start
+```
+
+Frontend application:
+👉 `http://localhost:3000`
+
+---
+
+## ⚙️ API Configuration
+
+* All backend endpoints are prefixed with `/api/`
+
+* Base URL (local):
+
+  ```
+  http://127.0.0.1:8000/api/
+  ```
+
+* Authentication:
+
+  ```
+  Authorization: Bearer <access_token>
+  ```
+
+---
+
+## 📂 Project Structure
+
+```text
+.
+├── rentora_backend/
+│   ├── accounts/        # Users & authentication
+│   ├── vehicles/        # Vehicle listings & images
+│   ├── bookings/        # Booking lifecycle
+│   ├── payments/        # Wallet, payments, promo codes
+│   ├── reviews/         # Reviews & ratings
+│   ├── chat/            # AI chat assistant
+│   ├── core/            # Health checks & utilities
+│   └── manage.py
+├── rentora_frontend/
+│   ├── public/
+│   └── src/
+└── docker-compose.yml
+```
+
+---
+
+## 📸 Screenshots
+
+### Login & Registration
+
+<img src="https://github.com/user-attachments/assets/03a64b52-e9bb-4959-aec8-f464c705095f" width="420" />
+
+### Vehicle Listing
+
+<img src="https://github.com/user-attachments/assets/42b0aa36-f1b3-42d1-866c-9ac9a856ecc1" width="900" />
+
+### Vehicle Details
+
+<img src="https://github.com/user-attachments/assets/ee0b272e-acdc-45c5-aec2-8c79bed0ff7f" width="650" />
+
+### User Profile
+
+<img src="https://github.com/user-attachments/assets/0bdbc0ab-0a69-4a92-b3f0-ec426211f2ba" width="650" />
+
+---
+
+## 📚 Documentation
+
+* `README.md` — Project overview & setup
+* `BACKEND.md` — Backend architecture & design
+* `FRONTEND.md` — Frontend architecture
+* `API_REFERENCE.md` — Full API documentation
+* `PROJECT_REPORT.md` — Graduation report
+* `CHANGELOG.md` — Backend change history
+
+---
+
+## 🎓 Project Purpose
+
+This project was developed as:
+
+* A **graduation project**
+* A **real-world backend-focused portfolio**
+* A demonstration of **industry best practices** in full-stack development
+
+---
+
+## 📄 License
+
+This project is for educational and portfolio purposes.
+
+```
