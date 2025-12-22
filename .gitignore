@@ -21,3 +21,6 @@ dist/
 
 # Logs
 *.log
+
+.gemini/
+gha-creds-*.json
