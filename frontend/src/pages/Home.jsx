@@ -24,6 +24,12 @@ export default function Home() {
     }
     fetchVehicles()
   }, [])
+    const getImageUrl = (path) => {
+  if (!path) return "https://via.placeholder.com/600x400";
+  if (path.startsWith("http")) return path;
+  return `http://localhost:8000${path}`;
+};
+
 
   const features = [
     { icon: '🚗', title: 'Wide Selection', description: 'Choose from hundreds of vehicles' },
@@ -150,7 +156,7 @@ export default function Home() {
                 <div className="position-relative">
                   <Card.Img 
                     variant="top" 
-                    src={vehicle.main_image} 
+                    src={getImageUrl(vehicle.primary_image?.image)} 
                     className="vehicle-image"
                     alt={vehicle.name}
                   />

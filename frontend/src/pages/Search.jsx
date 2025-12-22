@@ -76,6 +76,12 @@ export default function Search() {
         return 0
     }
   })
+  const getImageUrl = (path) => {
+  if (!path) return "https://via.placeholder.com/600x400";
+  if (path.startsWith("http")) return path;
+  return `http://localhost:8000${path}`;
+};
+
 
   const resetFilters = () => {
     setFilters({
@@ -220,6 +226,7 @@ export default function Search() {
           </Col>
 
           {/* Vehicle Grid */}
+          
           <Col lg={9}>
             {/* Sort */}
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -253,13 +260,16 @@ export default function Search() {
                   <Col key={vehicle.id} lg={4} md={6} className="mb-4">
                     <Card className="vehicle-card h-100">
                       <div className="position-relative">
-                        <Card.Img 
-                          variant="top" 
-                          src={vehicle.primary_image?.image || 'https://via.placeholder.com/600x400'} 
-                          className="vehicle-image"
-                          alt={vehicle.name}
-                          style={{ height: '200px', objectFit: 'cover' }}
-                        />
+                       <Card.Img
+  variant="top"
+  src={getImageUrl(vehicle.primary_image?.image)}
+
+
+  className="vehicle-image"
+  alt="Vehicle"
+  style={{ height: '200px', objectFit: 'cover' }}
+/>
+
                         <Badge 
                           bg="secondary" 
                           className="position-absolute"
