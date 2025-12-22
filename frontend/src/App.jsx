@@ -7,12 +7,13 @@ import { AuthProvider } from './context/AuthContext'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import Chatbot from './components/Chatbot'
+import ScrollToTop from './components/ScrollToTop'
 
 // Pages
 import Home from './pages/Home'
 import Search from './pages/Search'
 import VehicleDetail from './pages/VehicleDetail'
-import Login from './pages/Login'
+import Login from './pages/SignIn'
 import SignUp from './pages/SignUp'
 import Dashboard from './pages/Dashboard'
 import MyBookings from './pages/MyBookings'
@@ -20,6 +21,10 @@ import Profile from './pages/Profile'
 import Payment from './pages/Payment'
 import HowItWorks from './pages/HowItWorks'
 import Business from './pages/Business'
+import Contact from './pages/Contact'
+import ForgotPassword from './pages/ForgotPassword'
+import FAQ from './pages/FAQ'
+import Terms from './pages/Terms'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -38,6 +43,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
+          <ScrollToTop />
           <div className="d-flex flex-column min-vh-100">
             <Navbar />
             <main className="flex-grow-1">
@@ -45,10 +51,14 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/vehicle/:id" element={<VehicleDetail />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/business" element={<Business />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/terms" element={<Terms />} />
 
                 <Route element={<ProtectedRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
