@@ -5,7 +5,7 @@ import Sidebar from './Sidebar';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024); // lg breakpoint
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
   // Set initial dark mode based on localStorage or system preference
   useEffect(() => {
@@ -34,15 +34,20 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
         <Header onToggleSidebar={toggleSidebar} isSidebarOpen={sidebarOpen} />
         
-        {/* Main content area */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto mt-16 lg:ml-64 p-4 md:p-6">
-          <Outlet />
+        {/* Page Content */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+          <div className="min-h-full">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
