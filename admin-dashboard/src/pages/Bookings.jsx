@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { Calendar, Plus, Trash2, Search, Filter } from 'lucide-react';
 import api from '../services/api';
 import Card from '../components/Card';
 import Table from '../components/Table';
@@ -8,12 +9,12 @@ const BookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get('/bookings/admin-crud/'); 
-      console.log('Bookings data:', response.data); // Debug: check actual data structure
       setBookings(response.data);
     } catch (error) {
       console.error("Failed to fetch bookings:", error);
@@ -28,58 +29,22 @@ const BookingsPage = () => {
   }, [fetchBookings]);
 
   const handleDelete = async (id) => {
-    console.log('🚨 DELETE BUTTON CLICK DEBUG 🚨');
-    console.log('1. Button clicked for booking ID:', id);
-    console.log('2. window.confirm will execute');
+    const confirmed = window.confirm(`Are you sure you want to delete booking #${id}?`);
     
-    // TEST: First check if function is even being called
-    alert(`DEBUG: Delete function called for ID: ${id}. Click OK to proceed to confirm dialog.`);
-    
-    const confirmed = window.confirm(`Are you SURE you want to delete booking #${id}? This cannot be undone.`);
-    console.log('3. User confirmed?', confirmed);
-    
-    if (!confirmed) {
-      console.log('❌ User cancelled deletion');
-      return;
-    }
-    
-    console.log('✅ User confirmed deletion');
-    console.log('4. Attempting API DELETE call...');
+    if (!confirmed) return;
     
     try {
-      console.log(`📡 Calling: DELETE /bookings/admin-crud/${id}/`);
-      
-      // TEST with minimal API call
-      const response = await api.delete(`/bookings/admin-crud/${id}/`);
-      
-      console.log('✅ DELETE API SUCCESS');
-      console.log('Response status:', response.status);
-      console.log('Response data:', response.data);
-      
+      await api.delete(`/bookings/admin-crud/${id}/`);
       alert(`✅ Booking #${id} deleted successfully!`);
-      
-      console.log('5. Refreshing bookings data...');
       await fetchBookings();
-      
-      console.log('✅ Data refreshed, delete process COMPLETE');
-      
     } catch (error) {
-      console.error('❌ DELETE API FAILED');
-      console.error('Error object:', error);
-      console.error('Error message:', error.message);
-      console.error('Error response:', error.response);
-      console.error('Error status:', error.response?.status);
-      console.error('Error data:', error.response?.data);
-      
-      // Specific error messages for common issues
+      console.error('Delete failed:', error);
       if (error.response?.status === 403) {
-        alert(`❌ Permission Denied! You cannot delete booking #${id}. Check admin permissions.`);
+        alert(`❌ Permission Denied! You cannot delete booking #${id}.`);
       } else if (error.response?.status === 404) {
-        alert(`❌ Booking #${id} not found. It may have been already deleted.`);
-      } else if (error.response?.status === 401) {
-        alert(`❌ Authentication required. Please log in again.`);
+        alert(`❌ Booking #${id} not found.`);
       } else {
-        alert(`❌ Failed to delete booking #${id}. Error: ${error.message}`);
+        alert(`❌ Failed to delete booking #${id}.`);
       }
     }
   };
@@ -97,113 +62,158 @@ const BookingsPage = () => {
     if (!dateString) return 'N/A';
     try {
       return new Date(dateString).toLocaleString('en-US', {
-        month: '2-digit',
-        day: '2-digit',
+        month: 'short',
+        day: 'numeric',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: true,
       });
     } catch (error) {
       return 'Invalid Date';
     }
   };
 
-  // Updated columns with better handling for missing data
+  const getStatusBadge = (status) => {
+    const statusStyles = {
+      confirmed: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+      pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+      cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    };
+    
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusStyles[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'}`}>
+        {status || 'unknown'}
+      </span>
+    );
+  };
+
   const columns = [
-    { Header: 'ID', accessor: 'id' },
+    { 
+      Header: 'ID', 
+      accessor: 'id',
+      Cell: ({ value }) => (
+        <span className="font-semibold text-gray-900 dark:text-white">#{value}</span>
+      )
+    },
     { 
       Header: 'Customer', 
       accessor: 'customer_name', 
-      Cell: ({ value }) => value || 'N/A' // Simpler fallback for now
+      Cell: ({ value }) => (
+        <span className="text-gray-700 dark:text-gray-300">{value || 'N/A'}</span>
+      )
     },
     { 
       Header: 'Vehicle', 
       accessor: 'vehicle_details', 
-      Cell: ({ value }) => value?.name || 'N/A' // Safely access name from the object, simplified fallback
+      Cell: ({ value }) => (
+        <span className="text-gray-700 dark:text-gray-300">{value?.name || 'N/A'}</span>
+      )
     },
     { 
       Header: 'Total Price', 
       accessor: 'total_price',
-      Cell: ({ value }) => formatCurrency(value || 0)
-    },
-    { 
-      Header: 'Status', 
-      accessor: 'status',
       Cell: ({ value }) => (
-        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-          value === 'confirmed' ? 'bg-green-100 text-green-800' :
-          value === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-          value === 'cancelled' ? 'bg-red-100 text-red-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
-          {value || 'unknown'}
+        <span className="font-semibold text-blue-600 dark:text-blue-400">
+          {formatCurrency(value || 0)}
         </span>
       )
     },
     { 
+      Header: 'Status', 
+      accessor: 'status',
+      Cell: ({ value }) => getStatusBadge(value)
+    },
+    { 
       Header: 'Pickup Date', 
       accessor: 'pickup_date',
-      Cell: ({ value }) => formatDate(value)
+      Cell: ({ value }) => (
+        <span className="text-sm text-gray-600 dark:text-gray-400">{formatDate(value)}</span>
+      )
     },
     {
       Header: 'Actions',
-      // accessor: 'actions', // Removed accessor as it's a display-only column
-      Cell: ({ row }) => {
-        return (
-          <div className="flex space-x-2">
-            <button
-              onClick={() => handleDelete(row.original.id)}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-sm transition-colors"
-              title="Delete Booking"
-            >
-              Delete
-            </button>
-          </div>
-        );
-      },
+      Cell: ({ row }) => (
+        <button
+          onClick={() => handleDelete(row.original.id)}
+          className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+          title="Delete Booking"
+        >
+          <Trash2 className="w-4 h-4" />
+          Delete
+        </button>
+      ),
     },
   ];
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-blue-500 border-t-transparent mb-2"></div>
-          <div className="text-white">Loading bookings...</div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Loading bookings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      <Card>
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-white">Bookings Management</h1>
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <Calendar className="w-8 h-8 text-blue-500" />
+              Bookings Management
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Manage all rental bookings</p>
+          </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors flex items-center"
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Add Booking
+            <Plus className="w-5 h-5" />
+            Add New Booking
           </button>
         </div>
-        
-        {bookings.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <svg className="w-12 h-12 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <p className="text-lg mb-2">No bookings found</p>
-            <p>Click "Add Booking" to create your first booking</p>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="mb-6 flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search bookings..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors">
+              <Filter className="w-5 h-5" />
+              Filter
+            </button>
           </div>
-        ) : (
-          <Table columns={columns} data={bookings} />
-        )}
-      </Card>
+          
+          {bookings.length === 0 ? (
+            <div className="text-center py-12">
+              <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <p className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No bookings found</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">Get started by creating your first booking</p>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+                Add Booking
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table columns={columns} data={bookings} />
+            </div>
+          )}
+        </div>
+      </div>
       
       <AddBookingModal
         isOpen={isModalOpen}
@@ -214,7 +224,7 @@ const BookingsPage = () => {
           setIsModalOpen(false);
         }}
       />
-    </>
+    </div>
   );
 };
 
