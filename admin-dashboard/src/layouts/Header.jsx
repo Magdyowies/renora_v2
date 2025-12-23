@@ -7,9 +7,13 @@ import {
   SunIcon, 
   MoonIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  UserCircleIcon,
+  Cog6ToothIcon,
+  ArrowRightOnRectangleIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
-import { useAuth } from '../context/AuthContext.jsx'; // Corrected path
+import { useAuth } from '../context/AuthContext.jsx';
 
 const Header = ({ onToggleSidebar, isSidebarOpen }) => {
   const [mounted, setMounted] = useState(false);
@@ -46,14 +50,15 @@ const Header = ({ onToggleSidebar, isSidebarOpen }) => {
   if (!mounted) return null;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-20 bg-card-light dark:bg-card-dark border-b border-border-light dark:border-border-dark">
+    <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left section */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
+            {/* Sidebar Toggle Button */}
             <button
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+              className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               onClick={onToggleSidebar}
               aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             >
@@ -64,31 +69,50 @@ const Header = ({ onToggleSidebar, isSidebarOpen }) => {
               )}
             </button>
             
-            <div className="ml-4 flex items-center">
-              <Link to="/" className="text-xl font-bold text-primary">
-                Rentora Admin
-              </Link>
+            {/* Logo/Brand */}
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md group-hover:shadow-lg transition-shadow">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                </svg>
+              </div>
+              <span className="hidden sm:block text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Rentora
+              </span>
+            </Link>
+          </div>
+
+          {/* Center section - Search (hidden on mobile) */}
+          <div className="hidden md:block flex-1 max-w-md mx-8">
+            <div className="relative">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" aria-hidden="true" />
+              <input
+                type="text"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                placeholder="Search anything..."
+              />
+              <kbd className="hidden sm:inline-flex absolute right-3 top-1/2 transform -translate-y-1/2 items-center gap-1 rounded border border-gray-300 px-2 py-0.5 text-xs font-sans text-gray-500">
+                <span className="text-xs">⌘</span>K
+              </kbd>
             </div>
           </div>
 
           {/* Right section */}
-          <div className="flex items-center space-x-4">
-            {/* Search */}
-            <div className="hidden md:block relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-              </div>
-              <input
-                type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-border-light dark:border-border-dark rounded-md leading-5 bg-transparent text-text-light dark:text-text-dark placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm"
-                placeholder="Search..."
-              />
-            </div>
+          <div className="flex items-center gap-2">
+            {/* Search Icon (mobile) */}
+            <button
+              type="button"
+              className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              aria-label="Search"
+            >
+              <MagnifyingGlassIcon className="h-5 w-5" aria-hidden="true" />
+            </button>
 
             {/* Dark mode toggle */}
             <button
               type="button"
-              className="p-2 rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card-light dark:focus:ring-offset-card-dark"
+              className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               onClick={toggleDarkMode}
               aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
@@ -102,24 +126,35 @@ const Header = ({ onToggleSidebar, isSidebarOpen }) => {
             {/* Notifications */}
             <button
               type="button"
-              className="p-2 rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card-light dark:focus:ring-offset-card-dark"
+              className="relative p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               aria-label="View notifications"
             >
               <BellIcon className="h-5 w-5" aria-hidden="true" />
-              <span className="sr-only">View notifications</span>
-              <span className="absolute top-3 right-3.5 h-2 w-2 bg-red-500 rounded-full" />
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full ring-2 ring-white" />
             </button>
 
+            {/* Divider */}
+            <div className="hidden sm:block h-6 w-px bg-gray-300 mx-2"></div>
+
             {/* Profile dropdown */}
-            <Menu as="div" className="relative ml-3">
-              <div>
-                <Menu.Button className="flex items-center max-w-xs rounded-full bg-gray-100 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card-light dark:focus:ring-offset-card-dark">
-                  <span className="sr-only">Open user menu</span>
-                  <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center">
+            <Menu as="div" className="relative">
+              <Menu.Button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors group">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-semibold shadow-md">
                     {user?.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
-                </Menu.Button>
-              </div>
+                  <div className="hidden sm:block text-left">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {user?.username || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-500 capitalize">
+                      {user?.role || 'Admin'}
+                    </p>
+                  </div>
+                  <ChevronDownIcon className="hidden sm:block h-4 w-4 text-gray-500 group-hover:text-gray-700" />
+                </div>
+              </Menu.Button>
+              
               <Transition
                 as={React.Fragment}
                 enter="transition ease-out duration-100"
@@ -129,39 +164,56 @@ const Header = ({ onToggleSidebar, isSidebarOpen }) => {
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
               >
-                <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark focus:outline-none z-50">
+                <Menu.Items className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200 py-1">
+                  {/* User Info */}
+                  <div className="px-4 py-3 border-b border-gray-200">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {user?.username || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user?.email || 'user@example.com'}
+                    </p>
+                  </div>
+
                   <Menu.Item>
                     {({ active }) => (
                       <Link
                         to="/profile"
                         className={`${
-                          active ? 'bg-gray-100 dark:bg-gray-700' : ''
-                        } block px-4 py-2 text-sm text-text-light dark:text-text-dark`}
+                          active ? 'bg-gray-50' : ''
+                        } flex items-center gap-3 px-4 py-2 text-sm text-gray-700`}
                       >
+                        <UserCircleIcon className="h-5 w-5 text-gray-400" />
                         Your Profile
                       </Link>
                     )}
                   </Menu.Item>
+                  
                   <Menu.Item>
                     {({ active }) => (
                       <Link
                         to="/settings"
                         className={`${
-                          active ? 'bg-gray-100 dark:bg-gray-700' : ''
-                        } block px-4 py-2 text-sm text-text-light dark:text-text-dark`}
+                          active ? 'bg-gray-50' : ''
+                        } flex items-center gap-3 px-4 py-2 text-sm text-gray-700`}
                       >
+                        <Cog6ToothIcon className="h-5 w-5 text-gray-400" />
                         Settings
                       </Link>
                     )}
                   </Menu.Item>
+
+                  <div className="border-t border-gray-200 my-1"></div>
+
                   <Menu.Item>
                     {({ active }) => (
                       <button
                         onClick={handleLogout}
                         className={`${
-                          active ? 'bg-gray-100 dark:bg-gray-700' : ''
-                        } w-full text-left block px-4 py-2 text-sm text-text-light dark:text-text-dark`}
+                          active ? 'bg-red-50' : ''
+                        } flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600`}
                       >
+                        <ArrowRightOnRectangleIcon className="h-5 w-5" />
                         Sign out
                       </button>
                     )}
