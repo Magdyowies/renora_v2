@@ -76,7 +76,7 @@ const PromosPage = () => {
       accessor: 'discount_value',
       Cell: ({ value, row }) => (
         <span className="font-semibold text-gray-900 dark:text-white">
-          {row.original.discount_type === 'percentage' ? `${value}%` : `$${value}`}
+          {/* {row.original.discount_type === 'percentage' ? `${value}%` : `$${value}`} */}
         </span>
       )
     },
