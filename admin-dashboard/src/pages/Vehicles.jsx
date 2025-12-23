@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Car, Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
 import api from '../services/api';
 import Card from '../components/Card';
 import Table from '../components/Table';
 import Button from '../components/Button';
 import Input from '../components/Input';
-import Modal from 'react-modal'; // Import react-modal
-import { PlusCircle, Edit, Trash2 } from 'lucide-react'; // Icons
+import Modal from 'react-modal';
 
-// Ensure that the app element is set for react-modal
 Modal.setAppElement('#root');
 
 const VehiclesPage = () => {
@@ -16,6 +15,7 @@ const VehiclesPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchVehicles();
@@ -53,44 +53,139 @@ const VehiclesPage = () => {
     }
   };
 
+  const getStatusBadge = (status) => {
+    const statusStyles = {
+      available: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+      rented: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+      maintenance: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+      inactive: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    };
+    
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`}>
+        {status}
+      </span>
+    );
+  };
+
   const columns = [
-    { Header: 'ID', accessor: 'id' },
-    { Header: 'Name', accessor: 'name' },
-    { Header: 'Brand', accessor: 'brand' },
-    { Header: 'Model', accessor: 'model' },
-    { Header: 'Year', accessor: 'year' },
-    { Header: 'Price/Day', accessor: 'price_per_day' },
-    { Header: 'Status', accessor: 'status' },
+    { 
+      Header: 'ID', 
+      accessor: 'id',
+      Cell: ({ value }) => (
+        <span className="font-semibold text-gray-900 dark:text-white">#{value}</span>
+      )
+    },
+    { 
+      Header: 'Vehicle', 
+      accessor: 'name',
+      Cell: ({ value, row }) => (
+        <div>
+          <div className="font-medium text-gray-900 dark:text-white">{value}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {row.original.brand} {row.original.model}
+          </div>
+        </div>
+      )
+    },
+    { 
+      Header: 'Year', 
+      accessor: 'year',
+      Cell: ({ value }) => (
+        <span className="text-gray-700 dark:text-gray-300">{value}</span>
+      )
+    },
+    { 
+      Header: 'Price/Day', 
+      accessor: 'price_per_day',
+      Cell: ({ value }) => (
+        <span className="font-semibold text-blue-600 dark:text-blue-400">
+          ${parseFloat(value).toFixed(2)}
+        </span>
+      )
+    },
+    { 
+      Header: 'Status', 
+      accessor: 'status',
+      Cell: ({ value }) => getStatusBadge(value)
+    },
     {
       Header: 'Actions',
-      accessor: 'id',
       Cell: ({ row }) => (
-        <div className="flex space-x-2">
-          <Button variant="secondary" size="sm" onClick={() => handleEditVehicle(row.original)}>
-            <Edit size={16} />
-          </Button>
-          <Button variant="danger" size="sm" onClick={() => handleDeleteVehicle(row.original.id)}>
-            <Trash2 size={16} />
-          </Button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => handleEditVehicle(row.original)}
+            className="p-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
+            title="Edit Vehicle"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={() => handleDeleteVehicle(row.original.id)}
+            className="p-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg transition-colors"
+            title="Delete Vehicle"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       ),
     },
   ];
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Loading vehicles...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Vehicles Management</h1>
-        <Button onClick={handleCreateVehicle} startIcon={<PlusCircle size={20} />}>
-          Create Vehicle
-        </Button>
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <Car className="w-8 h-8 text-blue-500" />
+              Vehicles Management
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your rental fleet</p>
+          </div>
+          <button
+            onClick={handleCreateVehicle}
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            <Plus className="w-5 h-5" />
+            Add New Vehicle
+          </button>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="mb-6 flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search vehicles..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors">
+              <Filter className="w-5 h-5" />
+              Filter
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <Table columns={columns} data={vehicles} />
+          </div>
+        </div>
       </div>
-      
-      <Card>
-        <Table columns={columns} data={vehicles} />
-      </Card>
 
       <CreateVehicleModal
         isOpen={isCreateModalOpen}
@@ -108,7 +203,6 @@ const VehiclesPage = () => {
   );
 };
 
-// Reusable Modal Style
 const customModalStyles = {
   content: {
     top: '50%',
@@ -117,12 +211,12 @@ const customModalStyles = {
     bottom: 'auto',
     marginRight: '-50%',
     transform: 'translate(-50%, -50%)',
-    backgroundColor: '#fff', // Card background
-    borderRadius: '8px',
+    backgroundColor: '#fff',
+    borderRadius: '12px',
     padding: '2rem',
     width: '90%',
     maxWidth: '500px',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
     border: 'none',
   },
   overlay: {
@@ -151,7 +245,7 @@ const CreateVehicleModal = ({ isOpen, onRequestClose, onVehicleCreated }) => {
       await api.post('/admin/vehicles/', formData);
       onVehicleCreated();
       onRequestClose();
-      setFormData({ name: '', brand: '', model: '', year: '', price_per_day: '', status: 'available' }); // Reset form
+      setFormData({ name: '', brand: '', model: '', year: '', price_per_day: '', status: 'available' });
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to create vehicle');
     } finally {
@@ -161,43 +255,99 @@ const CreateVehicleModal = ({ isOpen, onRequestClose, onVehicleCreated }) => {
 
   return (
     <Modal isOpen={isOpen} onRequestClose={onRequestClose} style={customModalStyles}>
-      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Create New Vehicle</h2>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+      <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Add New Vehicle</h2>
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
-          <Input name="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vehicle Name</label>
+          <Input 
+            name="name" 
+            value={formData.name} 
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+            required 
+            placeholder="e.g., Tesla Model S"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Brand</label>
+            <Input 
+              name="brand" 
+              value={formData.brand} 
+              onChange={(e) => setFormData({ ...formData, brand: e.target.value })} 
+              required 
+              placeholder="e.g., Tesla"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Model</label>
+            <Input 
+              name="model" 
+              value={formData.model} 
+              onChange={(e) => setFormData({ ...formData, model: e.target.value })} 
+              required 
+              placeholder="e.g., Model S"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
+            <Input 
+              name="year" 
+              type="number" 
+              value={formData.year} 
+              onChange={(e) => setFormData({ ...formData, year: e.target.value })} 
+              required 
+              placeholder="2024"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price Per Day</label>
+            <Input 
+              name="price_per_day" 
+              type="number" 
+              step="0.01"
+              value={formData.price_per_day} 
+              onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })} 
+              required 
+              placeholder="99.99"
+            />
+          </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Brand</label>
-          <Input name="brand" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Model</label>
-          <Input name="model" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Year</label>
-          <Input name="year" type="number" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price Per Day</label>
-          <Input name="price_per_day" type="number" value={formData.price_per_day} onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })} required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-          <select name="status" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+          <select 
+            name="status" 
+            value={formData.status} 
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })} 
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
             <option value="available">Available</option>
             <option value="rented">Rented</option>
             <option value="maintenance">Maintenance</option>
             <option value="inactive">Inactive</option>
           </select>
         </div>
-        <div className="flex justify-end space-x-2">
-          <Button type="button" variant="secondary" onClick={onRequestClose}>Cancel</Button>
-          <Button type="submit" disabled={loading}>
+        <div className="flex justify-end gap-3 mt-6">
+          <button 
+            type="button" 
+            onClick={onRequestClose}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+          >
             {loading ? 'Creating...' : 'Create Vehicle'}
-          </Button>
+          </button>
         </div>
       </form>
     </Modal>
@@ -246,43 +396,94 @@ const EditVehicleModal = ({ isOpen, onRequestClose, vehicle, onVehicleUpdated })
 
   return (
     <Modal isOpen={isOpen} onRequestClose={onRequestClose} style={customModalStyles}>
-      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Edit Vehicle: {vehicle?.name}</h2>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+      <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Edit Vehicle</h2>
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
-          <Input name="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vehicle Name</label>
+          <Input 
+            name="name" 
+            value={formData.name} 
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+            required 
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Brand</label>
+            <Input 
+              name="brand" 
+              value={formData.brand} 
+              onChange={(e) => setFormData({ ...formData, brand: e.target.value })} 
+              required 
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Model</label>
+            <Input 
+              name="model" 
+              value={formData.model} 
+              onChange={(e) => setFormData({ ...formData, model: e.target.value })} 
+              required 
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
+            <Input 
+              name="year" 
+              type="number" 
+              value={formData.year} 
+              onChange={(e) => setFormData({ ...formData, year: e.target.value })} 
+              required 
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price Per Day</label>
+            <Input 
+              name="price_per_day" 
+              type="number" 
+              step="0.01"
+              value={formData.price_per_day} 
+              onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })} 
+              required 
+            />
+          </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Brand</label>
-          <Input name="brand" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Model</label>
-          <Input name="model" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Year</label>
-          <Input name="year" type="number" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price Per Day</label>
-          <Input name="price_per_day" type="number" value={formData.price_per_day} onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })} required />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-          <select name="status" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+          <select 
+            name="status" 
+            value={formData.status} 
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })} 
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
             <option value="available">Available</option>
             <option value="rented">Rented</option>
             <option value="maintenance">Maintenance</option>
             <option value="inactive">Inactive</option>
           </select>
         </div>
-        <div className="flex justify-end space-x-2">
-          <Button type="button" variant="secondary" onClick={onRequestClose}>Cancel</Button>
-          <Button type="submit" disabled={loading}>
+        <div className="flex justify-end gap-3 mt-6">
+          <button 
+            type="button" 
+            onClick={onRequestClose}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+          >
             {loading ? 'Updating...' : 'Save Changes'}
-          </Button>
+          </button>
         </div>
       </form>
     </Modal>
