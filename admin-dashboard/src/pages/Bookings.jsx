@@ -69,7 +69,7 @@ const BookingsPage = () => {
         minute: '2-digit',
       });
     } catch (error) {
-      return 'Invalid Date';
+      return 'Invalid Date',error;
     }
   };
 
