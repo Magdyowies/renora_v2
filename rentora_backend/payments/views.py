@@ -136,17 +136,57 @@ class PaymentCreateView(APIView):
 
                 booking.status = 'confirmed'
                 booking.save()
+                return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
+
+            elif method == 'stripe':
+                try:
+                    # Create a preliminary payment record
+                    payment = Payment.objects.create(
+                        booking=booking,
+                        user=request.user,
+                        amount=amount_to_pay,
+                        method='stripe',
+                        status='pending'
+                    )
+
+                    checkout_session = stripe.checkout.Session.create(
+                        payment_method_types=['card'],
+                        line_items=[
+                            {
+                                'price_data': {
+                                    'currency': 'usd',
+                                    'product_data': {
+                                        'name': f"Booking for {booking.vehicle.name}",
+                                        'description': f"Booking ID: {booking.id}",
+                                    },
+                                    'unit_amount': int(amount_to_pay * 100),
+                                },
+                                'quantity': 1,
+                            },
+                        ],
+                        mode='payment',
+                        success_url=settings.FRONTEND_URL + '/payment-success?session_id={CHECKOUT_SESSION_ID}',
+                        cancel_url=settings.FRONTEND_URL + '/payment-cancelled',
+                        metadata={
+                            'booking_id': booking.id,
+                            'payment_id': payment.id,
+                        },
+                        client_reference_id=booking.id
+                    )
+
+                    # Update payment record with Stripe session ID
+                    payment.transaction_id = checkout_session.id
+                    payment.save()
+
+                    return Response({'checkout_url': checkout_session.url})
+
+                except Exception as e:
+                    return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             else:
-                payment = Payment.objects.create(
-                    booking=booking,
-                    user=request.user,
-                    amount=amount_to_pay,
-                    method=method,
-                    status='pending'
-                )
+                # Handle other potential payment methods or return an error
+                return Response({'error': f"Payment method '{method}' not supported."}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
 
 
 class PaymentHistoryView(generics.ListAPIView):
@@ -158,6 +198,12 @@ class PaymentHistoryView(generics.ListAPIView):
 
 
 class PromoCodeListView(generics.ListCreateAPIView):
+    queryset = PromoCode.objects.all()
+    serializer_class = PromoCodeSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+class PromoCodeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = PromoCode.objects.all()
     serializer_class = PromoCodeSerializer
     permission_classes = [permissions.IsAdminUser]

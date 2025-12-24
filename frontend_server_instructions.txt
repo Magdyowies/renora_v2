@@ -1,0 +1,18 @@
+It seems the frontend development server is having trouble locating the `Header.jsx` file. The error `http://localhost:5173/src/layouts/Header.jsx 404 (Not Found)` suggests that the server is looking for the file at a path relative to its own root, but `src/layouts/Header.jsx` is not where it expects it.
+
+This often happens if the frontend development server (Vite, in this case) is not started from the correct directory.
+
+**Please ensure you are starting the frontend development server from the `admin-dashboard` directory:**
+
+1.  **Open your terminal.**
+2.  **Navigate to the `admin-dashboard` directory** within your project:
+    ```bash
+    cd /home/mego/Desktop/projects/ITI final grad project/rentora_v2.0/admin-dashboard/
+    ```
+3.  **Start the development server:**
+    ```bash
+    npm install  # (If you haven't recently, to ensure all dependencies are up-to-date)
+    npm run dev
+    ```
+
+After running `npm run dev` from the `admin-dashboard` directory, try accessing the frontend application again. This should resolve the `404 Not Found` error for `Header.jsx`.

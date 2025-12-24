@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions
 from .models import Review
 from .serializers import ReviewSerializer, ReviewCreateSerializer
+from accounts.permissions import IsAdminRole, IsAdminOrVendorRole # Import custom permission
 
 
 class ReviewCreateView(generics.CreateAPIView):
@@ -24,3 +25,15 @@ class MyReviewsView(generics.ListAPIView):
 
     def get_queryset(self):
         return Review.objects.filter(user=self.request.user)
+
+
+class AdminReviewListView(generics.ListAPIView):
+    queryset = Review.objects.all().select_related('user', 'vehicle')
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAdminOrVendorRole]
+
+
+class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAdminRole]

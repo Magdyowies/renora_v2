@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     WalletView, WalletTransactionsView, WalletTopUpView,
     PaymentCreateView, PaymentHistoryView,
-    PromoCodeListView, PromoCodeValidateView,
+    PromoCodeListView, PromoCodeValidateView, PromoCodeDetailView,
     StripeWebhookView, PaymentVerifyView
 )
 
@@ -14,6 +14,7 @@ urlpatterns = [
     path('wallet/transactions/', WalletTransactionsView.as_view(), name='wallet_transactions'),
     path('wallet/topup/', WalletTopUpView.as_view(), name='wallet_topup'),
     path('promo-codes/', PromoCodeListView.as_view(), name='promo_code_list'),
+    path('promo-codes/<int:pk>/', PromoCodeDetailView.as_view(), name='promo_code_detail'),
     path('promo-codes/validate/', PromoCodeValidateView.as_view(), name='promo_code_validate'),
     path('webhook/stripe/', StripeWebhookView.as_view(), name='stripe_webhook'),
     path('verify/<str:transactionId>/', PaymentVerifyView.as_view(), name='payment_verify'),

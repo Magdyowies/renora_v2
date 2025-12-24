@@ -76,7 +76,11 @@ const PromosPage = () => {
       accessor: 'discount_value',
       Cell: ({ value, row }) => (
         <span className="font-semibold text-gray-900 dark:text-white">
+<<<<<<< HEAD
           {/* {row.original.discount_type === 'percentage' ? `${value}%` : `$${value}`} */}
+=======
+          {row.original.discount_type === 'percentage' ? `${value}%` : `$${value}`}
+>>>>>>> dev
         </span>
       )
     },
@@ -117,7 +121,11 @@ const PromosPage = () => {
       Cell: ({ value, row }) => (
         <div className="flex gap-2">
           <button 
+<<<<<<< HEAD
             onClick={() => handleEdit(promos.find(p => p.id === value))}
+=======
+            onClick={() => handleEdit(row.original)}
+>>>>>>> dev
             className="p-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
             title="Edit"
           >
@@ -203,6 +211,7 @@ const PromoForm = ({ promo, onSave, onCancel }) => {
     discount_type: 'percentage',
     discount_value: '',
     min_booking_amount: '',
+    valid_from: new Date().toISOString().split('T')[0],
     valid_until: '',
     is_active: true,
   });
@@ -216,6 +225,10 @@ const PromoForm = ({ promo, onSave, onCancel }) => {
         discount_type: promo.discount_type,
         discount_value: promo.discount_value,
         min_booking_amount: promo.min_booking_amount,
+<<<<<<< HEAD
+=======
+        valid_from: promo.valid_from.split('T')[0],
+>>>>>>> dev
         valid_until: promo.valid_until.split('T')[0],
         is_active: promo.is_active,
       });
@@ -225,6 +238,7 @@ const PromoForm = ({ promo, onSave, onCancel }) => {
         discount_type: 'percentage',
         discount_value: '',
         min_booking_amount: '',
+        valid_from: new Date().toISOString().split('T')[0],
         valid_until: '',
         is_active: true,
       });
@@ -319,6 +333,22 @@ const PromoForm = ({ promo, onSave, onCancel }) => {
         
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+<<<<<<< HEAD
+=======
+            Valid From <span className="text-red-500">*</span>
+          </label>
+          <Input 
+            name="valid_from" 
+            type="date" 
+            value={formData.valid_from} 
+            onChange={(e) => setFormData({...formData, valid_from: e.target.value})} 
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+>>>>>>> dev
             Valid Until <span className="text-red-500">*</span>
           </label>
           <Input 

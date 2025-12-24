@@ -174,7 +174,7 @@ export default function Home() {
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <div>
                       <Card.Title className="mb-1">{vehicle.name}</Card.Title>
-                      <Badge bg="secondary" className="mb-2">{vehicle.category.name}</Badge>
+                      <Badge bg="secondary" className="mb-2">{vehicle.category?.name}</Badge>
                     </div>
                     <div className="text-end">
                       <div className="text-warning">⭐ {vehicle.rating}</div>

@@ -132,6 +132,10 @@ const BookingsPage = () => {
     },
     {
       Header: 'Actions',
+<<<<<<< HEAD
+=======
+      accessor: 'actions_bookings',
+>>>>>>> dev
       Cell: ({ row }) => (
         <button
           onClick={() => handleDelete(row.original.id)}

@@ -10,12 +10,13 @@ from bookings.models import Booking
 from payments.models import Payment
 from .models import AdminReport
 from .serializers import AdminReportSerializer
+from accounts.permissions import IsAdminRole, IsAdminOrVendorRole
 
 User = get_user_model()
 
 
 class DashboardStatsView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrVendorRole]
 
     def get(self, request):
         today = timezone.now().date()
@@ -43,7 +44,7 @@ class DashboardStatsView(APIView):
 
 
 class RevenueChartView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrVendorRole]
 
     def get(self, request):
         days = int(request.query_params.get('days', 30))
@@ -68,7 +69,7 @@ class RevenueChartView(APIView):
 
 
 class BookingChartView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrVendorRole]
 
     def get(self, request):
         days = int(request.query_params.get('days', 30))
@@ -89,7 +90,7 @@ class BookingChartView(APIView):
 
 
 class AdminUserListView(generics.ListAPIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminRole]
 
     def get(self, request):
         users = User.objects.all().values(
@@ -100,7 +101,7 @@ class AdminUserListView(generics.ListAPIView):
 
 
 class AdminVehicleListView(generics.ListAPIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminRole]
 
     def get(self, request):
         vehicles = Vehicle.objects.select_related('vendor', 'category').values(
@@ -114,7 +115,7 @@ class AdminVehicleListView(generics.ListAPIView):
 class AdminReportListView(generics.ListCreateAPIView):
     queryset = AdminReport.objects.all()
     serializer_class = AdminReportSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminRole]
 
     def perform_create(self, serializer):
         serializer.save(admin=self.request.user)

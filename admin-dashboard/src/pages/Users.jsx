@@ -6,10 +6,15 @@ import Table from '../components/Table';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Modal from 'react-modal';
+<<<<<<< HEAD
+=======
+import { useAuth } from '../context/AuthContext';
+>>>>>>> dev
 
 Modal.setAppElement('#root');
 
 const UsersPage = () => {
+  const { isAdmin } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -120,6 +125,7 @@ const UsersPage = () => {
           {new Date(value).toLocaleDateString()}
         </span>
       )
+<<<<<<< HEAD
     },
     {
       Header: 'Actions',
@@ -144,6 +150,35 @@ const UsersPage = () => {
     },
   ];
 
+=======
+    },
+  ];
+
+  if (isAdmin) {
+    columns.push({
+      Header: 'Actions',
+      Cell: ({ row }) => (
+        <div className="flex gap-2">
+          <button 
+            onClick={() => handleEditUser(row.original)}
+            className="p-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
+            title="Edit User"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={() => handleDeleteUser(row.original.id)}
+            className="p-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg transition-colors"
+            title="Delete User"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    });
+  }
+
+>>>>>>> dev
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -166,6 +201,7 @@ const UsersPage = () => {
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">Manage system users and permissions</p>
           </div>
+<<<<<<< HEAD
           <button
             onClick={handleCreateUser}
             className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -173,6 +209,17 @@ const UsersPage = () => {
             <UserPlus className="w-5 h-5" />
             Create User
           </button>
+=======
+          {isAdmin && (
+            <button
+              onClick={handleCreateUser}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <UserPlus className="w-5 h-5" />
+              Create User
+            </button>
+          )}
+>>>>>>> dev
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
@@ -199,18 +246,22 @@ const UsersPage = () => {
         </div>
       </div>
 
-      <CreateUserModal
-        isOpen={isCreateModalOpen}
-        onRequestClose={() => setIsCreateModalOpen(false)}
-        onUserCreated={fetchUsers}
-      />
+      {isAdmin && (
+        <>
+          <CreateUserModal
+            isOpen={isCreateModalOpen}
+            onRequestClose={() => setIsCreateModalOpen(false)}
+            onUserCreated={fetchUsers}
+          />
 
-      <EditUserModal
-        isOpen={isEditModalOpen}
-        onRequestClose={() => setIsEditModalOpen(false)}
-        user={selectedUser}
-        onUserUpdated={fetchUsers}
-      />
+          <EditUserModal
+            isOpen={isEditModalOpen}
+            onRequestClose={() => setIsEditModalOpen(false)}
+            user={selectedUser}
+            onUserUpdated={fetchUsers}
+          />
+        </>
+      )}
     </div>
   );
 };
