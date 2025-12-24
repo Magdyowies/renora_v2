@@ -10,12 +10,13 @@ from .serializers import (
     VehicleCategorySerializer, VehicleImageSerializer, AdminVehicleSerializer,
     AdminVehicleListSerializer
 )
+from accounts.permissions import IsAdminRole
 
 
 class AdminVehicleListView(generics.ListAPIView):
     queryset = Vehicle.objects.all()
     serializer_class = AdminVehicleListSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminRole]
 
 
 class IsVendorOrAdmin(permissions.BasePermission):
@@ -151,7 +152,7 @@ from django.http import JsonResponse
 class AdminVehicleViewSet(viewsets.ModelViewSet):
     queryset = Vehicle.objects.all().order_by('id')
     serializer_class = AdminVehicleSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminRole]
 
     def perform_create(self, serializer):
         # When creating a vehicle from the admin dashboard,

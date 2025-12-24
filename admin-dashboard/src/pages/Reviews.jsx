@@ -4,8 +4,10 @@ import api from '../services/api';
 import Card from '../components/Card';
 import Table from '../components/Table';
 import Button from '../components/Button';
+import { useAuth } from '../context/AuthContext';
 
 const ReviewsPage = () => {
+  const { isAdmin } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,7 +18,7 @@ const ReviewsPage = () => {
 
   const fetchReviews = async () => {
     try {
-      const response = await api.get('/reviews/');
+      const response = await api.get('/reviews/admin/');
       setReviews(response.data);
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
@@ -116,20 +118,23 @@ const ReviewsPage = () => {
         </div>
       )
     },
-    { 
+  ];
+
+  if (isAdmin) {
+    columns.push({
       Header: 'Actions', 
-      accessor: 'id', 
-      Cell: ({ value }) => (
+      accessor: 'actions_reviews', 
+      Cell: ({ row }) => (
         <button 
-          onClick={() => handleDelete(value)}
+          onClick={() => handleDelete(row.original.id)}
           className="p-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg transition-colors"
           title="Delete Review"
         >
           <Trash2 className="w-4 h-4" />
         </button>
       )
-    },
-  ];
+    });
+  }
 
   if (loading) {
     return (

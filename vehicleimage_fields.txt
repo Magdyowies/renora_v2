@@ -1,0 +1,12 @@
+The `VehicleImage` model in the backend has the following fields:
+
+*   **`vehicle`**: This is a foreign key to a `Vehicle` object. When adding or editing a `VehicleImage`, you would typically select an existing vehicle from a dropdown or a similar selector in the Django admin interface.
+*   **`image`**: This is an `ImageField`. It allows you to upload an image file (e.g., JPEG, PNG) for the vehicle. In the Django admin, this would appear as a file upload input.
+*   **`is_primary`**: This is a `BooleanField`. It's a checkbox indicating whether this image is the primary (main) image for the associated vehicle.
+*   **`created_at`**: This is a `DateTimeField` that is automatically set when the `VehicleImage` object is created (`auto_now_add=True`), so it's not an editable field in the admin.
+
+So, when interacting with `http://127.0.0.1:8000/admin/vehicles/vehicleimage/` (which likely refers to the Django administration interface for `VehicleImage` objects), the editable fields you would see are:
+
+*   **Vehicle** (a selector for the associated vehicle)
+*   **Image** (a file upload field)
+*   **Is primary** (a checkbox)

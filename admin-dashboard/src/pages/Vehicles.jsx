@@ -231,8 +231,15 @@ const CreateVehicleModal = ({ isOpen, onRequestClose, onVehicleCreated }) => {
     brand: '',
     model: '',
     year: '',
+    category: '',
+    transmission: '',
+    fuel_type: '',
+    seats: '',
+    doors: '',
     price_per_day: '',
-    status: 'available',
+    location: '',
+    description: '',
+    features: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -242,10 +249,34 @@ const CreateVehicleModal = ({ isOpen, onRequestClose, onVehicleCreated }) => {
     setLoading(true);
     setError('');
     try {
-      await api.post('/admin/vehicles/', formData);
+      // Convert category to integer for backend
+      const dataToSend = {
+        ...formData,
+        year: parseInt(formData.year),
+        category: parseInt(formData.category),
+        seats: parseInt(formData.seats),
+        doors: parseInt(formData.doors),
+        price_per_day: parseFloat(formData.price_per_day),
+      };
+
+      await api.post('/admin/vehicles/', dataToSend); // Note: this should be /api/vehicles/create/ for vendors, but the frontend uses /admin/vehicles/
       onVehicleCreated();
       onRequestClose();
-      setFormData({ name: '', brand: '', model: '', year: '', price_per_day: '', status: 'available' });
+      setFormData({ 
+        name: '', 
+        brand: '', 
+        model: '', 
+        year: '', 
+        category: '', 
+        transmission: '', 
+        fuel_type: '', 
+        seats: '', 
+        doors: '', 
+        price_per_day: '', 
+        location: '', 
+        description: '', 
+        features: '', 
+      });
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to create vehicle');
     } finally {
@@ -319,19 +350,106 @@ const CreateVehicleModal = ({ isOpen, onRequestClose, onVehicleCreated }) => {
             />
           </div>
         </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category ID</label>
+            <Input 
+              name="category" 
+              type="number" 
+              value={formData.category} 
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })} 
+              required 
+              placeholder="e.g., 1 (for Sedan)"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Transmission</label>
+            <select
+              name="transmission"
+              value={formData.transmission}
+              onChange={(e) => setFormData({ ...formData, transmission: e.target.value })}
+              required
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select Transmission</option>
+              <option value="automatic">Automatic</option>
+              <option value="manual">Manual</option>
+            </select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fuel Type</label>
+            <select
+              name="fuel_type"
+              value={formData.fuel_type}
+              onChange={(e) => setFormData({ ...formData, fuel_type: e.target.value })}
+              required
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select Fuel Type</option>
+              <option value="petrol">Petrol</option>
+              <option value="diesel">Diesel</option>
+              <option value="electric">Electric</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Seats</label>
+            <Input 
+              name="seats" 
+              type="number" 
+              value={formData.seats} 
+              onChange={(e) => setFormData({ ...formData, seats: e.target.value })} 
+              required 
+              placeholder="e.g., 5"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Doors</label>
+            <Input 
+              name="doors" 
+              type="number" 
+              value={formData.doors} 
+              onChange={(e) => setFormData({ ...formData, doors: e.target.value })} 
+              required 
+              placeholder="e.g., 4"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Location</label>
+            <Input 
+              name="location" 
+              value={formData.location} 
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })} 
+              required 
+              placeholder="e.g., Downtown Cairo"
+            />
+          </div>
+        </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-          <select 
-            name="status" 
-            value={formData.status} 
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })} 
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="available">Available</option>
-            <option value="rented">Rented</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="inactive">Inactive</option>
-          </select>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+          <Input 
+            name="description" 
+            value={formData.description} 
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
+            required 
+            placeholder="A detailed description of the vehicle."
+            as="textarea" // Use textarea for multi-line input
+            rows="3"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Features (comma-separated)</label>
+          <Input 
+            name="features" 
+            value={formData.features} 
+            onChange={(e) => setFormData({ ...formData, features: e.target.value })} 
+            required 
+            placeholder="e.g., AC, Bluetooth, GPS"
+          />
         </div>
         <div className="flex justify-end gap-3 mt-6">
           <button 

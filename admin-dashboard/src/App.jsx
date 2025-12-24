@@ -13,13 +13,12 @@ import BookingsPage from "./pages/Bookings";
 import PaymentsPage from "./pages/Payments";
 import PromosPage from "./pages/Promos";
 import ReviewsPage from "./pages/Reviews";
-import ReportsPage from "./pages/Reports";
 
 /**
  * Admin-only route guard
  */
 const AdminRoute = ({ children }) => {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+  const { isAuthenticated, isAdmin, isVendor, loading } = useAuth();
 
   if (loading) {
     return (
@@ -29,7 +28,7 @@ const AdminRoute = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated || !isAdmin) {
+  if (!isAuthenticated || (!isAdmin && !isVendor)) {
     return <Navigate to="/login" replace />;
   }
 
@@ -59,7 +58,6 @@ function App() {
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/promos" element={<PromosPage />} />
             <Route path="/reviews" element={<ReviewsPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
           </Route>
 
           {/* ================= FALLBACK ================= */}

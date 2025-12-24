@@ -30,10 +30,15 @@ export const AuthProvider = ({ children }) => {
     const res = await api.post("/auth/login/", { email, password });
     const { access, refresh } = res.data.tokens;
 
+    const decoded = jwtDecode(access);
+    if (decoded.role !== 'admin' && decoded.role !== 'vendor') {
+      throw new Error("You do not have permission to access the admin dashboard.");
+    }
+
     localStorage.setItem("access_token", access);
     localStorage.setItem("refresh_token", refresh);
 
-    setUser(jwtDecode(access));
+    setUser(decoded);
   };
 
   const logout = () => {
@@ -43,11 +48,12 @@ export const AuthProvider = ({ children }) => {
 
   // 🔑 KEY CHANGE
   const isAuthenticated = !!user;
-  const isAdmin = isAuthenticated; // <-- THIS FIXES EVERYTHING
+  const isAdmin = user?.role === 'admin';
+  const isVendor = user?.role === 'vendor';
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, isAuthenticated, isAdmin, loading }}
+      value={{ user, login, logout, isAuthenticated, isAdmin, isVendor, loading }}
     >
       {children}
     </AuthContext.Provider>

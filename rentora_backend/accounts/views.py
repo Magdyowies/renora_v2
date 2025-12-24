@@ -10,6 +10,7 @@ from .serializers import (
 from .models import User
 from accounts.models import UserProfile # Import UserProfile for ProfileView
 from django.shortcuts import get_object_or_404
+from .permissions import IsAdminRole
 
 
 class AuthApiRoot(APIView):
@@ -56,6 +57,11 @@ class LoginView(generics.GenericAPIView):
         user = serializer.validated_data # This is now the authenticated user object
         
         token = RefreshToken.for_user(user)
+
+        # Add custom claims to the token
+        token['role'] = user.role
+        token['username'] = user.username
+
         user_serializer = UserSerializer(user, context={'request': request}) # Pass context for profile serialization
         data = user_serializer.data
         data["tokens"] = {"refresh": str(token), "access": str(token.access_token)}
@@ -109,19 +115,19 @@ class ChangePasswordView(generics.UpdateAPIView):
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminRole]
 
 
 class AdminUserListCreateView(generics.ListCreateAPIView):
     queryset = User.objects.all().order_by('id')
     serializer_class = AdminUserSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminRole]
 
 
 class AdminUserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminRole]
     lookup_field = 'id'
 
 
@@ -234,7 +240,7 @@ class UserStatsView(APIView):
 
     def get(self, request, id):
         # Admin يقدر يشوف أي حد
-        if not request.user.is_staff and request.user.id != id:
+        if not request.user.role == 'admin' and request.user.id != id:
             return Response(
                 {"detail": "You do not have permission to view this user's stats."},
                 status=status.HTTP_403_FORBIDDEN

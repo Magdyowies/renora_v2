@@ -6,10 +6,12 @@ import Table from '../components/Table';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Modal from 'react-modal';
+import { useAuth } from '../context/AuthContext';
 
 Modal.setAppElement('#root');
 
 const UsersPage = () => {
+  const { isAdmin } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -121,7 +123,10 @@ const UsersPage = () => {
         </span>
       )
     },
-    {
+  ];
+
+  if (isAdmin) {
+    columns.push({
       Header: 'Actions',
       Cell: ({ row }) => (
         <div className="flex gap-2">
@@ -141,8 +146,8 @@ const UsersPage = () => {
           </button>
         </div>
       ),
-    },
-  ];
+    });
+  }
 
   if (loading) {
     return (
@@ -166,13 +171,15 @@ const UsersPage = () => {
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">Manage system users and permissions</p>
           </div>
-          <button
-            onClick={handleCreateUser}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            <UserPlus className="w-5 h-5" />
-            Create User
-          </button>
+          {isAdmin && (
+            <button
+              onClick={handleCreateUser}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <UserPlus className="w-5 h-5" />
+              Create User
+            </button>
+          )}
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
@@ -199,18 +206,22 @@ const UsersPage = () => {
         </div>
       </div>
 
-      <CreateUserModal
-        isOpen={isCreateModalOpen}
-        onRequestClose={() => setIsCreateModalOpen(false)}
-        onUserCreated={fetchUsers}
-      />
+      {isAdmin && (
+        <>
+          <CreateUserModal
+            isOpen={isCreateModalOpen}
+            onRequestClose={() => setIsCreateModalOpen(false)}
+            onUserCreated={fetchUsers}
+          />
 
-      <EditUserModal
-        isOpen={isEditModalOpen}
-        onRequestClose={() => setIsEditModalOpen(false)}
-        user={selectedUser}
-        onUserUpdated={fetchUsers}
-      />
+          <EditUserModal
+            isOpen={isEditModalOpen}
+            onRequestClose={() => setIsEditModalOpen(false)}
+            user={selectedUser}
+            onUserUpdated={fetchUsers}
+          />
+        </>
+      )}
     </div>
   );
 };

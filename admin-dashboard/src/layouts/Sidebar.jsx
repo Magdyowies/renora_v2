@@ -23,7 +23,6 @@ const navigation = [
   { name: 'Payments', href: '/payments', icon: CreditCardIcon },
   { name: 'Promo Codes', href: '/promos', icon: TagIcon },
   { name: 'Reviews', href: '/reviews', icon: StarIcon },
-  { name: 'Reports', href: '/reports', icon: DocumentTextIcon },
 ];
 
 const Sidebar = ({ isOpen, onClose }) => {
