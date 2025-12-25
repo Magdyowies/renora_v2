@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
 import { 
   HomeIcon, 
@@ -8,8 +8,7 @@ import {
   CalendarIcon, 
   CreditCardIcon, 
   TagIcon, 
-  StarIcon, 
-  DocumentTextIcon,
+  StarIcon,
   Cog6ToothIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
@@ -25,8 +24,47 @@ const navigation = [
   { name: 'Reviews', href: '/reviews', icon: StarIcon },
 ];
 
+const NavItem = ({ item, onClose }) => {
+  const { href, name, icon: Icon } = item;
+  
+  return (
+    <li>
+      <NavLink
+        to={href}
+        end={href === '/'} // Use `end` for exact matching on the root route
+        className={({ isActive }) => twMerge(
+          'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group',
+          isActive 
+            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20' 
+            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+        )}
+        onClick={onClose}
+      >
+        {({ isActive }) => (
+          <>
+            <Icon 
+              className={twMerge(
+                'flex-shrink-0 w-5 h-5 transition-all duration-200',
+                isActive 
+                  ? 'text-white' 
+                  : 'text-gray-500 group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400',
+                'group-hover:scale-110'
+              )}
+              aria-hidden="true"
+            />
+            <span>{name}</span>
+            {isActive && (
+              <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>
+            )}
+          </>
+        )}
+      </NavLink>
+    </li>
+  );
+};
+
+
 const Sidebar = ({ isOpen, onClose }) => {
-  const location = useLocation();
   const { user } = useAuth();
 
   return (
@@ -95,72 +133,17 @@ const Sidebar = ({ isOpen, onClose }) => {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 py-2">
             <ul className="space-y-1">
-              {navigation.map((item) => {
-                const isActive = item.href === '/' 
-                  ? location.pathname === item.href 
-                  : location.pathname.startsWith(item.href);
-                  
-                return (
-                  <li key={item.name}>
-                    <NavLink
-                      to={item.href}
-                      className={({ isActive }) => twMerge(
-                        'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200',
-                        isActive 
-                          ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20' 
-                          : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
-                        'group'
-                      )}
-                      onClick={onClose}
-                    >
-                      <item.icon 
-                        className={twMerge(
-                          'flex-shrink-0 w-5 h-5 transition-transform duration-200',
-                          isActive 
-                            ? 'text-white' 
-                            : 'text-gray-500 group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400',
-                          'group-hover:scale-110'
-                        )}
-                        aria-hidden="true"
-                      />
-                      <span>{item.name}</span>
-                      {isActive && (
-                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>
-                      )}
-                    </NavLink>
-                  </li>
-                );
-              })}
+              {navigation.map((item) => (
+                <NavItem key={item.name} item={item} onClose={onClose} />
+              ))}
             </ul>
 
             {/* Settings Section */}
             <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-              <NavLink
-                to="/settings"
-                className={({ isActive }) => twMerge(
-                  'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200',
-                  isActive
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20'
-                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
-                  'group'
-                )}
-                onClick={onClose}
-              >
-                <Cog6ToothIcon 
-                  className={twMerge(
-                    'flex-shrink-0 w-5 h-5 transition-transform duration-200',
-                    location.pathname === '/settings'
-                      ? 'text-white' 
-                      : 'text-gray-500 group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400',
-                    'group-hover:rotate-90'
-                  )}
-                  aria-hidden="true"
-                />
-                <span>Settings</span>
-                {location.pathname === '/settings' && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>
-                )}
-              </NavLink>
+              <NavItem 
+                item={{ name: 'Settings', href: '/settings', icon: Cog6ToothIcon }}
+                onClose={onClose}
+              />
             </div>
           </nav>
 
