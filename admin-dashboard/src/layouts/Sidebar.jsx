@@ -44,7 +44,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       <aside 
         className={twMerge(
           'fixed top-0 left-0 z-50 w-72 h-screen transition-transform duration-300 ease-in-out',
-          'bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl',
+          'bg-white border-r border-gray-200 shadow-xl',
           isOpen ? 'translate-x-0' : '-translate-x-full',
           'lg:translate-x-0 lg:static lg:z-auto'
         )}
@@ -52,7 +52,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,13 +61,13 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </svg>
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Rentora</h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Admin Panel</p>
+                <h2 className="text-lg font-bold text-gray-900">Rentora</h2>
+                <p className="text-xs text-gray-500">Admin Panel</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="lg:hidden p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="lg:hidden p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
             >
               <XMarkIcon className="w-5 h-5" />
             </button>
@@ -75,16 +75,16 @@ const Sidebar = ({ isOpen, onClose }) => {
 
           {/* User Info Card */}
           <div className="px-4 py-4">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-700 rounded-lg p-4 border border-blue-100 dark:border-gray-600">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-semibold shadow-md text-lg">
                   {user?.username?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
                     {user?.username || 'Admin User'}
                   </p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 capitalize">
+                  <p className="text-xs text-gray-600 capitalize">
                     {user?.role || 'Administrator'}
                   </p>
                 </div>
@@ -108,7 +108,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                         'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200',
                         isActive 
                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20' 
-                          : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
+                          : 'text-gray-700 hover:bg-gray-100',
                         'group'
                       )}
                       onClick={onClose}
@@ -118,7 +118,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                           'flex-shrink-0 w-5 h-5 transition-transform duration-200',
                           isActive 
                             ? 'text-white' 
-                            : 'text-gray-500 group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400',
+                            : 'text-gray-500 group-hover:text-blue-600',
                           'group-hover:scale-110'
                         )}
                         aria-hidden="true"
@@ -134,14 +134,14 @@ const Sidebar = ({ isOpen, onClose }) => {
             </ul>
 
             {/* Settings Section */}
-            <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="pt-4 mt-4 border-t border-gray-200">
               <NavLink
                 to="/settings"
                 className={({ isActive }) => twMerge(
                   'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200',
                   isActive
                     ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20'
-                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
+                    : 'text-gray-700 hover:bg-gray-100',
                   'group'
                 )}
                 onClick={onClose}
@@ -151,7 +151,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                     'flex-shrink-0 w-5 h-5 transition-transform duration-200',
                     location.pathname === '/settings'
                       ? 'text-white' 
-                      : 'text-gray-500 group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400',
+                      : 'text-gray-500 group-hover:text-blue-600',
                     'group-hover:rotate-90'
                   )}
                   aria-hidden="true"
@@ -165,8 +165,8 @@ const Sidebar = ({ isOpen, onClose }) => {
           </nav>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+          <div className="px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between text-xs text-gray-500">
               <span>© 2024 Rentora</span>
               <span className="font-medium">v1.0.0</span>
             </div>
