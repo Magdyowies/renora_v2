@@ -64,6 +64,9 @@ class VendorBookingsView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return Booking.objects.select_related('vehicle', 'customer').all()
         return Booking.objects.select_related('vehicle', 'customer').filter(vehicle__vendor=self.request.user)
 
 

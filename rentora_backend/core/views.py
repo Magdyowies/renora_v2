@@ -16,7 +16,7 @@ User = get_user_model()
 
 
 class DashboardStatsView(APIView):
-    permission_classes = [IsAdminOrVendorRole]
+    permission_classes = [IsAdminRole]
 
     def get(self, request):
         today = timezone.now().date()
@@ -44,7 +44,7 @@ class DashboardStatsView(APIView):
 
 
 class RevenueChartView(APIView):
-    permission_classes = [IsAdminOrVendorRole]
+    permission_classes = [IsAdminRole]
 
     def get(self, request):
         days = int(request.query_params.get('days', 30))
@@ -69,7 +69,7 @@ class RevenueChartView(APIView):
 
 
 class BookingChartView(APIView):
-    permission_classes = [IsAdminOrVendorRole]
+    permission_classes = [IsAdminRole]
 
     def get(self, request):
         days = int(request.query_params.get('days', 30))

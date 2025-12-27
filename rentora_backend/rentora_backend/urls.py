@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/reviews/', include('reviews.urls')),
     path('api/chat/', include('chat.urls')),
     path('api/', include('core.urls')),
+    path('api/dashboard/', include('dashboard.urls')),
     path('api/admin/users/', include('accounts.admin_urls')),
     path('api/admin/vehicles/', include('vehicles.admin_urls')),
 ]

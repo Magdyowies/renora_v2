@@ -55,14 +55,23 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, revenueRes, bookingRes] = await Promise.all([
-          api.get('/admin/stats/'),
-          api.get('/admin/revenue-chart/'),
-          api.get('/admin/booking-chart/'),
-        ]);
-        setStats(statsRes.data);
-        setRevenueData(revenueRes.data);
-        setBookingData(bookingRes.data);
+        const response = await api.get('/dashboard/vendor/');
+        const data = response.data;
+        
+        setStats(data);
+
+        const formattedRevenueData = data.monthly_revenue.map(item => ({
+          date: new Date(item.month).toLocaleString('default', { month: 'short' }),
+          revenue: item.total,
+        }));
+        setRevenueData(formattedRevenueData);
+
+        const formattedBookingData = data.monthly_bookings.map(item => ({
+          date: new Date(item.month).toLocaleString('default', { month: 'short' }),
+          bookings: item.count,
+        }));
+        setBookingData(formattedBookingData);
+
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
         setError("Failed to load dashboard data. Please try again later.");

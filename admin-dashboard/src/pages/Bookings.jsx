@@ -14,7 +14,7 @@ const BookingsPage = () => {
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get('/bookings/admin-crud/'); 
+      const response = await api.get('/bookings/vendor/'); 
       setBookings(response.data);
     } catch (error) {
       console.error("Failed to fetch bookings:", error);
