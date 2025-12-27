@@ -59,7 +59,7 @@ function App() {
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/promos" element={<PromosPage />} />
             <Route path="/reviews" element={<ReviewsPage />} />
-            <Route path="/account" element={<SettingsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
 
           {/* ================= FALLBACK ================= */}

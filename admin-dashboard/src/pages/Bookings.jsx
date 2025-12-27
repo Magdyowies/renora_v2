@@ -34,7 +34,7 @@ const BookingsPage = () => {
     if (!confirmed) return;
     
     try {
-      await api.delete(`/bookings/admin-crud/${id}/`);
+      await api.delete(`/bookings/vendor/${id}/`);
       alert(`✅ Booking #${id} deleted successfully!`);
       await fetchBookings();
     } catch (error) {
@@ -126,6 +126,13 @@ const BookingsPage = () => {
     { 
       Header: 'Pickup Date', 
       accessor: 'pickup_date',
+      Cell: ({ value }) => (
+        <span className="text-sm text-gray-600 dark:text-gray-400">{formatDate(value)}</span>
+      )
+    },
+    { 
+      Header: 'Return Date', 
+      accessor: 'return_date',
       Cell: ({ value }) => (
         <span className="text-sm text-gray-600 dark:text-gray-400">{formatDate(value)}</span>
       )

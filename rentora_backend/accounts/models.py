@@ -24,6 +24,7 @@ class UserProfile(models.Model):
     country = models.CharField(max_length=100, blank=True)
     driver_license = models.CharField(max_length=50, blank=True)
     driver_license_expiry = models.DateField(null=True, blank=True)
+    company_name = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

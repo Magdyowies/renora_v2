@@ -69,6 +69,7 @@ class Payment(models.Model):
 
 
 class PromoCode(models.Model):
+    vendor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, related_name='promo_codes')
     DISCOUNT_TYPE_CHOICES = [
         ('percentage', 'Percentage'),
         ('fixed', 'Fixed Amount'),

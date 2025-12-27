@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions, status
+from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils import timezone
@@ -198,15 +199,39 @@ class PaymentHistoryView(generics.ListAPIView):
 
 
 class PromoCodeListView(generics.ListCreateAPIView):
-    queryset = PromoCode.objects.all()
     serializer_class = PromoCodeSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return PromoCode.objects.all()
+        elif getattr(user, 'role', None) == 'vendor':
+            return PromoCode.objects.filter(vendor=user)
+        return PromoCode.objects.none()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if getattr(user, 'role', None) == 'vendor':
+            serializer.save(vendor=user)
+        elif user.is_superuser:
+            serializer.save()
+        else:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You do not have permission to create promo codes.")
 
 
 class PromoCodeDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PromoCode.objects.all()
     serializer_class = PromoCodeSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return PromoCode.objects.all()
+        elif getattr(user, 'role', None) == 'vendor':
+            return PromoCode.objects.filter(vendor=user)
+        return PromoCode.objects.none()
 
 
 class PromoCodeValidateView(APIView):

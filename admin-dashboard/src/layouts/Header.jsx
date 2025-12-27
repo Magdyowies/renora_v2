@@ -1,6 +1,7 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Sun, Moon, Menu, LogOut, Bell } from 'lucide-react';
+import { Sun, Moon, Menu, LogOut, Bell, UserCircle } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 const Header = ({ onToggleSidebar, isSidebarOpen }) => {
@@ -44,6 +45,15 @@ const Header = ({ onToggleSidebar, isSidebarOpen }) => {
             <Bell className="h-5 w-5" />
             <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800"></span>
           </button>
+
+          {/* Account Settings Link */}
+          <NavLink
+            to="/settings"
+            className="flex items-center gap-2 p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+          >
+            <UserCircle className="h-5 w-5" />
+            <span className="hidden sm:block text-sm font-medium">Account</span>
+          </NavLink>
 
           {/* Logout Button */}
           <button 

@@ -10,6 +10,7 @@ const AddBookingModal = ({ isOpen, onClose, onSuccess }) => {
     return_date: '',
     pickup_location: '',
     return_location: '',
+    promo_code: '',
     notes: '',
   });
   const [customers, setCustomers] = useState([]);
@@ -25,13 +26,9 @@ const AddBookingModal = ({ isOpen, onClose, onSuccess }) => {
         try {
           const [usersRes, vehiclesRes] = await Promise.all([
             api.get('/users/list/'),
-            api.get('/vehicles/list/'),
+            api.get('/vehicles/my/'),
           ]);
           
-          console.log('Users response:', usersRes.data);
-          console.log('Vehicles response:', vehiclesRes.data);
-
-          // Handle both paginated and non-paginated responses
           setCustomers(usersRes.data.results || usersRes.data);
           setVehicles(vehiclesRes.data.results || vehiclesRes.data);
 
@@ -63,7 +60,7 @@ const AddBookingModal = ({ isOpen, onClose, onSuccess }) => {
     e.preventDefault();
     setError('');
     try {
-      await api.post('/bookings/admin-crud/', formData);
+      await api.post('/bookings/vendor/create/', formData);
       onSuccess();
       onClose();
     } catch (err) {
@@ -121,6 +118,10 @@ const AddBookingModal = ({ isOpen, onClose, onSuccess }) => {
               <div className="md:col-span-2">
                 <label htmlFor="return_location" className="block mb-2 text-sm font-medium text-gray-300">Return Location</label>
                 <input type="text" id="return_location" name="return_location" value={formData.return_location} onChange={handleChange} className={inputClass} required />
+              </div>
+              <div className="md:col-span-2">
+                <label htmlFor="promo_code" className="block mb-2 text-sm font-medium text-gray-300">Promo Code (Optional)</label>
+                <input type="text" id="promo_code" name="promo_code" value={formData.promo_code} onChange={handleChange} className={inputClass} />
               </div>
               <div className="md:col-span-2">
                 <label htmlFor="notes" className="block mb-2 text-sm font-medium text-gray-300">Notes</label>

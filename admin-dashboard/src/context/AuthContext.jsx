@@ -51,9 +51,15 @@ export const AuthProvider = ({ children }) => {
   const isAdmin = user?.role === 'admin';
   const isVendor = user?.role === 'vendor';
 
+  const updateUser = (updatedUserData) => {
+    setUser(prevUser => ({ ...prevUser, ...updatedUserData }));
+    // Optionally, if the access token contains user data, you might re-encode or update it
+    // For now, only updating the in-memory user object
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, isAuthenticated, isAdmin, isVendor, loading }}
+      value={{ user, login, logout, isAuthenticated, isAdmin, isVendor, loading, updateUser }}
     >
       {children}
     </AuthContext.Provider>
