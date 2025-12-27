@@ -48,7 +48,7 @@ export default function Dashboard() {
     const now = new Date()
     return pickupDate > now && b.status !== 'cancelled'
   }).length
-  const totalRevenue = bookings.filter(b => b.status !== 'cancelled').reduce((sum, b) => sum + Number(b.total_price || 0), 0)
+  const totalRevenue = bookings.filter(b => b.status !== 'cancelled').reduce((sum, b) => sum + Number(b.final_price || 0), 0)
 
   const stats = [
     { title: 'Total Bookings', value: bookings.length, icon: '🚗', color: 'primary', trend: 'All time' },
@@ -226,7 +226,7 @@ export default function Dashboard() {
                             {status}
                           </Badge>
                         </td>
-                        <td className="fw-bold">${Number(booking.total_price)?.toFixed(2)}</td>
+                        <td className="fw-bold">${Number(booking.final_price)?.toFixed(2)}</td>
                         <td>
                           <div className="d-flex gap-2">
                             <Button 
@@ -267,10 +267,10 @@ export default function Dashboard() {
             <Row>
               <Col md={6}>
                 <h5 className="fw-bold mb-3">Vehicle Information</h5>
-                {selectedBooking.vehicle.primary_image?.image && (
+                {selectedBooking.vehicle_details.primary_image?.image && (
                   <img 
-                    src={selectedBooking.vehicle.primary_image.image} 
-                    alt={selectedBooking.vehicle.name}
+                    src={selectedBooking.vehicle_details.primary_image.image} 
+                    alt={selectedBooking.vehicle_details.name}
                     style={{ 
                       width: '100%', 
                       height: '200px', 
@@ -282,11 +282,11 @@ export default function Dashboard() {
                 )}
                 <div className="mb-3">
                   <label className="text-muted small">Vehicle</label>
-                  <div className="fw-semibold">{selectedBooking.vehicle.name}</div>
+                  <div className="fw-semibold">{selectedBooking.vehicle_details.name}</div>
                 </div>
                 <div className="mb-3">
                   <label className="text-muted small">Category</label>
-                  <div className="fw-semibold">{selectedBooking.vehicle.category_name}</div>
+                  <div className="fw-semibold">{selectedBooking.vehicle_details.category_name}</div>
                 </div>
                 <div className="mb-3">
                   <label className="text-muted small">Status</label>
@@ -328,7 +328,7 @@ export default function Dashboard() {
                 <div className="bg-light p-3 rounded">
                   <div className="d-flex justify-content-between mb-2">
                     <span>Daily Rate</span>
-                    <span>${(Number(selectedBooking.total_price) / Number(selectedBooking.total_days || 1))?.toFixed(2)}/day</span>
+                    <span>${(Number(selectedBooking.final_price) / Number(selectedBooking.total_days || 1))?.toFixed(2)}/day</span>
                   </div>
                   <div className="d-flex justify-content-between mb-2">
                     <span>Number of Days</span>
@@ -341,7 +341,7 @@ export default function Dashboard() {
                   <hr />
                   <div className="d-flex justify-content-between">
                     <span className="fw-bold fs-5">Total Amount</span>
-                    <span className="fw-bold fs-5 text-primary">${Number(selectedBooking.total_price)?.toFixed(2)}</span>
+                    <span className="fw-bold fs-5 text-primary">${Number(selectedBooking.final_price)?.toFixed(2)}</span>
                   </div>
                 </div>
                 <div className="mt-3 small text-muted">
