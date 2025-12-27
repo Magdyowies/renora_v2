@@ -104,7 +104,7 @@ export default function BookingSuccess() {
                 </Row>
                 <Row className="mb-2">
                   <Col xs={5} className="text-muted">Vehicle:</Col>
-                  <Col xs={7} className="fw-semibold">{bookingDetails.vehicle.name}</Col>
+                  <Col xs={7} className="fw-semibold">{bookingDetails.vehicle_details.name}</Col>
                 </Row>
                 <Row className="mb-2">
                   <Col xs={5} className="text-muted">Dates:</Col>
@@ -114,7 +114,7 @@ export default function BookingSuccess() {
                 </Row>
                 <Row className="mb-2">
                   <Col xs={5} className="text-muted">Total Price:</Col>
-                  <Col xs={7} className="fw-semibold">${Number(bookingDetails.total_price)?.toFixed(2)}</Col>
+                  <Col xs={7} className="fw-semibold">${Number(bookingDetails.final_price)?.toFixed(2)}</Col>
                 </Row>
                 <Row>
                   <Col xs={5} className="text-muted">Status:</Col>

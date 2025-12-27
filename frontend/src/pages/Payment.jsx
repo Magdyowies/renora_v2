@@ -72,7 +72,7 @@ export default function Payment() {
     );
   }
 
-  const finalAmount = promoResult?.final_amount ?? booking.total_price;
+  const finalAmount = promoResult?.final_amount ?? booking.final_price;
 
   return (
     <Container className="py-5">
@@ -109,7 +109,7 @@ export default function Payment() {
 
           {/* Promo Code */}
           <ApplyPromoCode
-            bookingAmount={booking.total_price}
+            bookingAmount={booking.base_price}
             onPromoApplied={setPromoResult}
           />
         </Col>
@@ -120,17 +120,17 @@ export default function Payment() {
             <Card.Body>
               <h5 className="fw-bold mb-3">Order Summary</h5>
 
-              {booking.vehicle.primary_image?.image && (
+              {booking.vehicle_details.primary_image?.image && (
                 <img
-                  src={booking.vehicle.primary_image.image}
-                  alt={booking.vehicle.name}
+                  src={booking.vehicle_details.primary_image.image}
+                  alt={booking.vehicle_details.name}
                   className="img-fluid rounded mb-3"
                 />
               )}
 
-              <h6 className="fw-bold">{booking.vehicle.name}</h6>
+              <h6 className="fw-bold">{booking.vehicle_details.name}</h6>
               <Badge bg="secondary" className="mb-3">
-                {booking.vehicle.category_name}
+                {booking.vehicle_details.category_name}
               </Badge>
 
               <ListGroup variant="flush">
