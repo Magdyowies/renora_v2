@@ -5,12 +5,13 @@ from rest_framework.views import APIView
 
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserProfileSerializer,
-    ChangePasswordSerializer, UserSerializer, AdminUserSerializer, UserListSerializer
+    ChangePasswordSerializer, UserSerializer, AdminUserSerializer, UserListSerializer,
+    AccountSerializer, UserAccountSerializer, UserChangePasswordSerializer
 )
 from .models import User
 from accounts.models import UserProfile # Import UserProfile for ProfileView
 from django.shortcuts import get_object_or_404
-from .permissions import IsAdminRole
+from .permissions import IsAdminRole, IsAdminOrVendorRole
 
 
 class AuthApiRoot(APIView):
@@ -29,8 +30,47 @@ class AuthApiRoot(APIView):
                 "profile": "/api/auth/profile/",
                 "profile_update": "/api/auth/profile/update/",
                 "change_password": "/api/auth/change-password/",
+                "account_me": "/api/account/me/",
+                "account_change_password": "/api/account/change-password/",
             }
         })
+
+# =============================================================================
+# NEW ACCOUNT MANAGEMENT VIEWS
+# =============================================================================
+class UserAccountView(generics.RetrieveUpdateAPIView):
+    """
+    get:
+    Retrieve the authenticated user's account details.
+
+    patch:
+    Update the authenticated user's account details.
+    'company_name' is only available for vendors.
+    """
+    serializer_class = UserAccountSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
+class UserChangePasswordView(generics.GenericAPIView):
+    """
+    An endpoint for changing the authenticated user's password.
+    """
+    serializer_class = UserChangePasswordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": "Password has been changed successfully."}, status=status.HTTP_200_OK)
+
+
+# =============================================================================
+# EXISTING AUTHENTICATION AND USER VIEWS
+# =============================================================================
 
 
 class RegisterView(generics.GenericAPIView):
@@ -112,10 +152,25 @@ class ChangePasswordView(generics.UpdateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class AccountView(generics.RetrieveUpdateAPIView):
+    serializer_class = AccountSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
 class UserListView(generics.ListAPIView):
-    queryset = User.objects.all()
     serializer_class = UserListSerializer
-    permission_classes = [IsAdminRole]
+    permission_classes = [IsAdminOrVendorRole]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return User.objects.all()
+        elif getattr(user, 'role', None) == 'vendor':
+            return User.objects.filter(bookings__vehicle__vendor=user).distinct()
+        return User.objects.none()
 
 
 class AdminUserListCreateView(generics.ListCreateAPIView):

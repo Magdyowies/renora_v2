@@ -118,3 +118,102 @@ class LoginSerializer(serializers.Serializer):
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True, validators=[validate_password])
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source='profile.company_name', read_only=False, required=False, allow_blank=True)
+    email = serializers.EmailField(read_only=True)
+    role = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'phone', 'role', 'company_name']
+
+    def update(self, instance, validated_data):
+        # Update User fields
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.phone = validated_data.get('phone', instance.phone)
+        instance.save()
+
+        # Update UserProfile fields (specifically company_name)
+        # Use .get() for profile to avoid KeyError if profile is not being updated
+        profile_data = validated_data.get('profile', {}) 
+        company_name = profile_data.get('company_name') # Correctly get company_name
+        
+        if company_name is not None: # Check if company_name was provided in the payload
+            profile, created = UserProfile.objects.get_or_create(user=instance)
+            profile.company_name = company_name
+            profile.save()
+
+        return instance
+
+
+# =============================================================================
+# NEW SERIALIZERS FOR /api/account/
+# =============================================================================
+
+class UserAccountSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the current user's account details.
+    Handles conditional serialization of 'company_name' for vendors.
+    """
+    company_name = serializers.CharField(source='profile.company_name', required=False, allow_blank=True)
+    email = serializers.EmailField(read_only=True)
+    role = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'phone', 'role', 'company_name']
+
+    def to_representation(self, instance):
+        """Conditionally remove company_name for non-vendors."""
+        representation = super().to_representation(instance)
+        user = self.context['request'].user
+        if user.role != 'vendor':
+            representation.pop('company_name', None)
+        return representation
+
+    def update(self, instance, validated_data):
+        # User fields
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.phone = validated_data.get('phone', instance.phone)
+        instance.save()
+
+        # UserProfile fields, only if the user is a vendor
+        if instance.role == 'vendor' and 'profile' in validated_data:
+            profile_data = validated_data.get('profile', {})
+            company_name = profile_data.get('company_name')
+
+            profile, _ = UserProfile.objects.get_or_create(user=instance)
+            if company_name is not None:
+                profile.company_name = company_name
+                profile.save()
+
+        return instance
+
+
+class UserChangePasswordSerializer(serializers.Serializer):
+    """
+    Serializer for password change endpoint.
+    """
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+    
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Your old password was entered incorrectly. Please enter it again.")
+        return value
+
+    def validate_new_password(self, value):
+        validate_password(value, self.context['request'].user)
+        return value
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+
+        return user

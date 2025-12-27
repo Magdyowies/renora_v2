@@ -13,6 +13,7 @@ import BookingsPage from "./pages/Bookings";
 import PaymentsPage from "./pages/Payments";
 import PromosPage from "./pages/Promos";
 import ReviewsPage from "./pages/Reviews";
+import SettingsPage from "./pages/Settings";
 
 /**
  * Admin-only route guard
@@ -58,6 +59,7 @@ function App() {
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/promos" element={<PromosPage />} />
             <Route path="/reviews" element={<ReviewsPage />} />
+            <Route path="/account" element={<SettingsPage />} />
           </Route>
 
           {/* ================= FALLBACK ================= */}

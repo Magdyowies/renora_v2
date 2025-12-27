@@ -7,6 +7,7 @@ from accounts.views import UserListView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),
+    path('api/account/', include('accounts.account_urls')),
     path('api/users/', include('accounts.user_urls')),
     path('api/users/list/', UserListView.as_view(), name='user-list-for-admin'),
     path('api/vehicles/', include('vehicles.urls')),
