@@ -111,10 +111,19 @@ const BookingsPage = () => {
     },
     { 
       Header: 'Total Price', 
-      accessor: 'total_price',
+      accessor: 'final_price',
       Cell: ({ value }) => (
         <span className="font-semibold text-blue-600 dark:text-blue-400">
           {formatCurrency(value || 0)}
+        </span>
+      )
+    },
+    {
+      Header: 'Promo Code',
+      accessor: 'promo_code_str',
+      Cell: ({ value }) => (
+        <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+          {value || 'N/A'}
         </span>
       )
     },

@@ -9,15 +9,17 @@ from django.contrib.auth import get_user_model
 class BookingSerializer(serializers.ModelSerializer):
     vehicle_details = VehicleListSerializer(source='vehicle', read_only=True)
     customer_name = serializers.SerializerMethodField()
+    promo_code_str = serializers.StringRelatedField(source='promo_code', read_only=True)
 
     class Meta:
         model = Booking
         fields = [
             'id', 'vehicle_details', 'customer_name', 'pickup_date', 'return_date',
             'pickup_location', 'return_location', 'total_days', 'base_price',
-            'discount_amount', 'final_price', 'promo_code', 'status', 'notes', 'created_at'
+            'discount_amount', 'final_price', 'promo_code_str', 'status', 'notes', 'created_at'
         ]
-        read_only_fields = ['id', 'customer_name', 'total_days', 'base_price', 'final_price', 'created_at']
+        read_only_fields = ['id', 'customer_name', 'total_days', 'base_price', 'final_price', 'created_at', 'promo_code_str']
+
 
     def get_customer_name(self, obj):
         # Fallback to username if full_name is empty
