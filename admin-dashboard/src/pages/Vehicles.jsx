@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Car, Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
 import api from '../services/api';
-import Card from '../components/Card';
 import Table from '../components/Table';
-import Button from '../components/Button';
-import Input from '../components/Input';
 import Modal from 'react-modal';
+import AddVehicleModal from '../components/AddVehicleModal';
+import EditVehicleModal from '../components/EditVehicleModal';
+import { getVehiclePrimaryImage } from '../utils/imageUtils'; // Import the utility
 
 Modal.setAppElement('#root');
 
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,7 +23,7 @@ const VehiclesPage = () => {
 
   const fetchVehicles = async () => {
     try {
-      const response = await api.get('/admin/vehicles/');
+      const response = await api.get('/vehicles/my/');
       setVehicles(response.data);
     } catch (error) {
       console.error("Failed to fetch vehicles:", error);
@@ -32,9 +32,9 @@ const VehiclesPage = () => {
     }
   };
 
-  const handleCreateVehicle = () => {
+  const handleAddVehicle = () => {
     setSelectedVehicle(null);
-    setIsCreateModalOpen(true);
+    setIsAddModalOpen(true);
   };
 
   const handleEditVehicle = (vehicle) => {
@@ -69,6 +69,18 @@ const VehiclesPage = () => {
   };
 
   const columns = [
+    {
+      Header: 'Image',
+      accessor: 'primary_image', // can be any key, we use the whole row
+      Cell: ({ row }) => (
+        <img
+          src={getVehiclePrimaryImage(row.original)}
+          alt={row.original.name}
+          className="w-16 h-10 rounded-md object-cover"
+          loading="lazy"
+        />
+      )
+    },
     { 
       Header: 'ID', 
       accessor: 'id',
@@ -155,7 +167,7 @@ const VehiclesPage = () => {
             <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your rental fleet</p>
           </div>
           <button
-            onClick={handleCreateVehicle}
+            onClick={handleAddVehicle}
             className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <Plus className="w-5 h-5" />
@@ -187,9 +199,9 @@ const VehiclesPage = () => {
         </div>
       </div>
 
-      <CreateVehicleModal
-        isOpen={isCreateModalOpen}
-        onRequestClose={() => setIsCreateModalOpen(false)}
+      <AddVehicleModal
+        isOpen={isAddModalOpen}
+        onRequestClose={() => setIsAddModalOpen(false)}
         onVehicleCreated={fetchVehicles}
       />
 
@@ -200,411 +212,6 @@ const VehiclesPage = () => {
         onVehicleUpdated={fetchVehicles}
       />
     </div>
-  );
-};
-
-const customModalStyles = {
-  content: {
-    top: '50%',
-    left: '50%',
-    right: 'auto',
-    bottom: 'auto',
-    marginRight: '-50%',
-    transform: 'translate(-50%, -50%)',
-    backgroundColor: '#fff',
-    borderRadius: '12px',
-    padding: '2rem',
-    width: '90%',
-    maxWidth: '500px',
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-    border: 'none',
-  },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    zIndex: 1000,
-  },
-};
-
-const CreateVehicleModal = ({ isOpen, onRequestClose, onVehicleCreated }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    brand: '',
-    model: '',
-    year: '',
-    category: '',
-    transmission: '',
-    fuel_type: '',
-    seats: '',
-    doors: '',
-    price_per_day: '',
-    location: '',
-    description: '',
-    features: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      // Convert category to integer for backend
-      const dataToSend = {
-        ...formData,
-        year: parseInt(formData.year),
-        category: parseInt(formData.category),
-        seats: parseInt(formData.seats),
-        doors: parseInt(formData.doors),
-        price_per_day: parseFloat(formData.price_per_day),
-      };
-
-      await api.post('/admin/vehicles/', dataToSend); // Note: this should be /api/vehicles/create/ for vendors, but the frontend uses /admin/vehicles/
-      onVehicleCreated();
-      onRequestClose();
-      setFormData({ 
-        name: '', 
-        brand: '', 
-        model: '', 
-        year: '', 
-        category: '', 
-        transmission: '', 
-        fuel_type: '', 
-        seats: '', 
-        doors: '', 
-        price_per_day: '', 
-        location: '', 
-        description: '', 
-        features: '', 
-      });
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to create vehicle');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Modal isOpen={isOpen} onRequestClose={onRequestClose} style={customModalStyles}>
-      <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Add New Vehicle</h2>
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
-          {error}
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vehicle Name</label>
-          <Input 
-            name="name" 
-            value={formData.name} 
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-            required 
-            placeholder="e.g., Tesla Model S"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Brand</label>
-            <Input 
-              name="brand" 
-              value={formData.brand} 
-              onChange={(e) => setFormData({ ...formData, brand: e.target.value })} 
-              required 
-              placeholder="e.g., Tesla"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Model</label>
-            <Input 
-              name="model" 
-              value={formData.model} 
-              onChange={(e) => setFormData({ ...formData, model: e.target.value })} 
-              required 
-              placeholder="e.g., Model S"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
-            <Input 
-              name="year" 
-              type="number" 
-              value={formData.year} 
-              onChange={(e) => setFormData({ ...formData, year: e.target.value })} 
-              required 
-              placeholder="2024"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price Per Day</label>
-            <Input 
-              name="price_per_day" 
-              type="number" 
-              step="0.01"
-              value={formData.price_per_day} 
-              onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })} 
-              required 
-              placeholder="99.99"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category ID</label>
-            <Input 
-              name="category" 
-              type="number" 
-              value={formData.category} 
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })} 
-              required 
-              placeholder="e.g., 1 (for Sedan)"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Transmission</label>
-            <select
-              name="transmission"
-              value={formData.transmission}
-              onChange={(e) => setFormData({ ...formData, transmission: e.target.value })}
-              required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select Transmission</option>
-              <option value="automatic">Automatic</option>
-              <option value="manual">Manual</option>
-            </select>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fuel Type</label>
-            <select
-              name="fuel_type"
-              value={formData.fuel_type}
-              onChange={(e) => setFormData({ ...formData, fuel_type: e.target.value })}
-              required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select Fuel Type</option>
-              <option value="petrol">Petrol</option>
-              <option value="diesel">Diesel</option>
-              <option value="electric">Electric</option>
-              <option value="hybrid">Hybrid</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Seats</label>
-            <Input 
-              name="seats" 
-              type="number" 
-              value={formData.seats} 
-              onChange={(e) => setFormData({ ...formData, seats: e.target.value })} 
-              required 
-              placeholder="e.g., 5"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Doors</label>
-            <Input 
-              name="doors" 
-              type="number" 
-              value={formData.doors} 
-              onChange={(e) => setFormData({ ...formData, doors: e.target.value })} 
-              required 
-              placeholder="e.g., 4"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Location</label>
-            <Input 
-              name="location" 
-              value={formData.location} 
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })} 
-              required 
-              placeholder="e.g., Downtown Cairo"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-          <Input 
-            name="description" 
-            value={formData.description} 
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
-            required 
-            placeholder="A detailed description of the vehicle."
-            as="textarea" // Use textarea for multi-line input
-            rows="3"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Features (comma-separated)</label>
-          <Input 
-            name="features" 
-            value={formData.features} 
-            onChange={(e) => setFormData({ ...formData, features: e.target.value })} 
-            required 
-            placeholder="e.g., AC, Bluetooth, GPS"
-          />
-        </div>
-        <div className="flex justify-end gap-3 mt-6">
-          <button 
-            type="button" 
-            onClick={onRequestClose}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            Cancel
-          </button>
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Creating...' : 'Create Vehicle'}
-          </button>
-        </div>
-      </form>
-    </Modal>
-  );
-};
-
-const EditVehicleModal = ({ isOpen, onRequestClose, vehicle, onVehicleUpdated }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    brand: '',
-    model: '',
-    year: '',
-    price_per_day: '',
-    status: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (vehicle) {
-      setFormData({
-        name: vehicle.name,
-        brand: vehicle.brand,
-        model: vehicle.model,
-        year: vehicle.year,
-        price_per_day: vehicle.price_per_day,
-        status: vehicle.status,
-      });
-    }
-  }, [vehicle]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      await api.patch(`/admin/vehicles/${vehicle.id}/`, formData);
-      onVehicleUpdated();
-      onRequestClose();
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to update vehicle');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Modal isOpen={isOpen} onRequestClose={onRequestClose} style={customModalStyles}>
-      <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Edit Vehicle</h2>
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
-          {error}
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vehicle Name</label>
-          <Input 
-            name="name" 
-            value={formData.name} 
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-            required 
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Brand</label>
-            <Input 
-              name="brand" 
-              value={formData.brand} 
-              onChange={(e) => setFormData({ ...formData, brand: e.target.value })} 
-              required 
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Model</label>
-            <Input 
-              name="model" 
-              value={formData.model} 
-              onChange={(e) => setFormData({ ...formData, model: e.target.value })} 
-              required 
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
-            <Input 
-              name="year" 
-              type="number" 
-              value={formData.year} 
-              onChange={(e) => setFormData({ ...formData, year: e.target.value })} 
-              required 
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price Per Day</label>
-            <Input 
-              name="price_per_day" 
-              type="number" 
-              step="0.01"
-              value={formData.price_per_day} 
-              onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })} 
-              required 
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-          <select 
-            name="status" 
-            value={formData.status} 
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })} 
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="available">Available</option>
-            <option value="rented">Rented</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-        <div className="flex justify-end gap-3 mt-6">
-          <button 
-            type="button" 
-            onClick={onRequestClose}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            Cancel
-          </button>
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Updating...' : 'Save Changes'}
-          </button>
-        </div>
-      </form>
-    </Modal>
   );
 };
 
