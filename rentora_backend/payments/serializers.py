@@ -30,7 +30,6 @@ from bookings.models import Booking
 class PaymentCreateSerializer(serializers.Serializer):
     booking_id = serializers.IntegerField()
     method = serializers.CharField()
-    promo_code = serializers.CharField(required=False, allow_blank=True)
 
     def validate_booking_id(self, value):
         try:

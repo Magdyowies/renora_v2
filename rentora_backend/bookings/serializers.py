@@ -15,9 +15,9 @@ class BookingSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'vehicle_details', 'customer_name', 'pickup_date', 'return_date',
             'pickup_location', 'return_location', 'total_days', 'base_price',
-            'discount_amount', 'total_price', 'promo_code', 'status', 'notes', 'created_at'
+            'discount_amount', 'final_price', 'promo_code', 'status', 'notes', 'created_at'
         ]
-        read_only_fields = ['id', 'customer_name', 'total_days', 'base_price', 'total_price', 'created_at']
+        read_only_fields = ['id', 'customer_name', 'total_days', 'base_price', 'final_price', 'created_at']
 
     def get_customer_name(self, obj):
         # Fallback to username if full_name is empty
@@ -92,7 +92,7 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             except PromoCode.DoesNotExist:
                 pass
 
-        total_price = base_price - discount_amount
+        final_price = base_price - discount_amount
 
         booking = Booking.objects.create(
             customer=self.context['request'].user,
@@ -104,7 +104,7 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             total_days=total_days,
             base_price=base_price,
             discount_amount=discount_amount,
-            total_price=total_price,
+            final_price=final_price,
             promo_code=promo,
             notes=validated_data.get('notes', '')
         )
@@ -124,12 +124,12 @@ class AdminBookingSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'customer', 'customer_name', 'vehicle_details',
             'pickup_date', 'return_date', 'pickup_location', 'return_location', 
-            'total_days', 'base_price', 'discount_amount', 'total_price', 
+            'total_days', 'base_price', 'discount_amount', 'final_price', 
             'promo_code', 'status', 'notes', 'created_at'
         ]
         read_only_fields = [
             'id', 'customer_name', 'vehicle_details', 'total_days', 'base_price',
-            'discount_amount', 'total_price', 'created_.at'
+            'discount_amount', 'final_price', 'created_.at'
         ]
 
     def validate(self, attrs):
@@ -192,13 +192,13 @@ class AdminBookingSerializer(serializers.ModelSerializer):
             except PromoCode.DoesNotExist:
                 pass
         
-        total_price = base_price - discount_amount
+        final_price = base_price - discount_amount
         
         return {
             'total_days': total_days,
             'base_price': base_price,
             'discount_amount': discount_amount,
-            'total_price': total_price,
+            'final_price': final_price,
             'promo_code': promo,
         }
 

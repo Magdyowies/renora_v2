@@ -69,50 +69,23 @@ class PaymentCreateView(APIView):
 
         booking = serializer.validated_data['booking_id']
         method = serializer.validated_data['method']
-        promo_code = serializer.validated_data.get('promo_code')
 
         if booking.customer != request.user:
             return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
 
         if booking.status != 'pending':
-            return Response({'error': 'Booking is not pending'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Booking is not pending for payment'}, status=status.HTTP_400_BAD_REQUEST)
 
         existing_payment = Payment.objects.filter(booking=booking, status='completed').exists()
         if existing_payment:
-            return Response({'error': 'Booking already paid'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Booking has already been paid'}, status=status.HTTP_400_BAD_REQUEST)
 
-        amount_to_pay = booking.total_price
-        if promo_code:
-            try:
-                promo = PromoCode.objects.get(
-                    code=promo_code,
-                    is_active=True,
-                    valid_from__lte=timezone.now(),
-                    valid_until__gte=timezone.now()
-                )
-                if promo.usage_limit and promo.used_count >= promo.usage_limit:
-                    return Response({'error': 'Promo code usage limit reached'}, status=status.HTTP_400_BAD_REQUEST)
-
-                if booking.total_price < promo.min_booking_amount:
-                    return Response({'error': f'Minimum booking amount is ${promo.min_booking_amount}'}, status=status.HTTP_400_BAD_REQUEST)
-
-                if promo.discount_type == 'percentage':
-                    discount = amount_to_pay * (promo.discount_value / 100)
-                    if promo.max_discount and discount > promo.max_discount:
-                        discount = promo.max_discount
-                else:
-                    discount = promo.discount_value
-                
-                amount_to_pay -= discount
-                promo.used_count += 1
-                promo.save()
-
-            except PromoCode.DoesNotExist:
-                return Response({'error': 'Invalid or expired promo code'}, status=status.HTTP_400_BAD_REQUEST)
+        # Use the final_price from the booking as the source of truth
+        amount_to_pay = booking.final_price
 
         with transaction.atomic():
             if method == 'wallet':
-                wallet, created = Wallet.objects.get_or_create(user=request.user)
+                wallet, _ = Wallet.objects.get_or_create(user=request.user)
                 if wallet.balance < amount_to_pay:
                     return Response({'error': 'Insufficient wallet balance'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -141,7 +114,6 @@ class PaymentCreateView(APIView):
 
             elif method == 'stripe':
                 try:
-                    # Create a preliminary payment record
                     payment = Payment.objects.create(
                         booking=booking,
                         user=request.user,
@@ -152,41 +124,29 @@ class PaymentCreateView(APIView):
 
                     checkout_session = stripe.checkout.Session.create(
                         payment_method_types=['card'],
-                        line_items=[
-                            {
-                                'price_data': {
-                                    'currency': 'usd',
-                                    'product_data': {
-                                        'name': f"Booking for {booking.vehicle.name}",
-                                        'description': f"Booking ID: {booking.id}",
-                                    },
-                                    'unit_amount': int(amount_to_pay * 100),
+                        line_items=[{
+                            'price_data': {
+                                'currency': 'usd',
+                                'product_data': {
+                                    'name': f"Booking for {booking.vehicle.name}",
                                 },
-                                'quantity': 1,
+                                'unit_amount': int(amount_to_pay * 100),
                             },
-                        ],
+                            'quantity': 1,
+                        }],
                         mode='payment',
-                        success_url=settings.FRONTEND_URL + '/payment-success?session_id={CHECKOUT_SESSION_ID}',
-                        cancel_url=settings.FRONTEND_URL + '/payment-cancelled',
-                        metadata={
-                            'booking_id': booking.id,
-                            'payment_id': payment.id,
-                        },
-                        client_reference_id=booking.id
+                        success_url=f"{settings.FRONTEND_URL}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
+                        cancel_url=f"{settings.FRONTEND_URL}/payment-cancelled",
+                        metadata={'payment_id': payment.id}
                     )
-
-                    # Update payment record with Stripe session ID
                     payment.transaction_id = checkout_session.id
                     payment.save()
 
                     return Response({'checkout_url': checkout_session.url})
-
                 except Exception as e:
                     return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            else:
-                # Handle other potential payment methods or return an error
-                return Response({'error': f"Payment method '{method}' not supported."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            return Response({'error': f"Payment method '{method}' not supported."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

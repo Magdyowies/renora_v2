@@ -21,7 +21,7 @@ class Booking(models.Model):
     total_days = models.IntegerField(default=0)
     base_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    final_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     promo_code = models.ForeignKey('payments.PromoCode', null=True, blank=True, on_delete=models.SET_NULL)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     notes = models.TextField(blank=True, null=True)
@@ -48,8 +48,8 @@ class Booking(models.Model):
             if self.base_price != calculated_base_price:
                 self.base_price = calculated_base_price
             
-            # Recalculate total_price considering discount
-            self.total_price = self.base_price - self.discount_amount
+            # Recalculate final_price considering discount
+            self.final_price = self.base_price - self.discount_amount
 
         super().save(*args, **kwargs)
 
