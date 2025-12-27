@@ -83,7 +83,7 @@ export default function MyBookings() {
         <Row className="align-items-center">
           <Col md={3}>
             <img
-              src={booking.vehicle_details.primary_image?.image || 'https://via.placeholder.com/120x80'}
+              src={booking.vehicle_details.primary_image?.image_url || 'https://via.placeholder.com/120x80'}
               alt={booking.vehicle_details.name}
               style={{
                 width: '100%',
@@ -103,13 +103,13 @@ export default function MyBookings() {
             <div className="text-muted small mb-2">
               <div>📅 {format(new Date(booking.pickup_date), 'MMM dd, yyyy')} to {format(new Date(booking.return_date), 'MMM dd, yyyy')}</div>
               <div>📍 {booking.pickup_location}</div>
-              <div>💰 ${Number(booking.final_price)?.toFixed(2)}</div>
+              <div>💰 ${Number(booking.final_price || 0)?.toFixed(2)}</div>
             </div>
           </Col>
           <Col md={3} className="text-md-end">
             <div className="mb-2">
               <div className="text-muted small">Total</div>
-              <h4 className="fw-bold text-primary mb-3">${Number(booking.final_price)?.toFixed(2)}</h4>
+              <h4 className="fw-bold text-primary mb-3">${Number(booking.final_price || 0)?.toFixed(2)}</h4>
             </div>
             <div className="d-flex flex-column gap-2">
               <Button
