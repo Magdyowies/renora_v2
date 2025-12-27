@@ -84,15 +84,25 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                     valid_from__lte=timezone.now().date(),
                     valid_until__gte=timezone.now().date()
                 )
-                if promo.min_booking_amount <= base_price:
-                    if promo.discount_type == 'percentage':
-                        discount_amount = base_price * (promo.discount_value / 100)
-                        if promo.max_discount and discount_amount > promo.max_discount:
-                            discount_amount = promo.max_discount
-                    else:
-                        discount_amount = promo.discount_value
+                if promo.min_booking_amount > base_price:
+                    raise serializers.ValidationError(f"Promo code '{promo_code_str}' requires a minimum booking amount of ${promo.min_booking_amount}.")
+                
+                if promo.usage_limit and promo.used_count >= promo.usage_limit:
+                    raise serializers.ValidationError(f"Promo code '{promo_code_str}' has reached its usage limit.")
+                
+                if promo.discount_type == 'percentage':
+                    discount_amount = base_price * (promo.discount_value / 100)
+                    if promo.max_discount and discount_amount > promo.max_discount:
+                        discount_amount = promo.max_discount
+                else:
+                    discount_amount = promo.discount_value
+                
+                # Increment usage count if promo code is successfully applied
+                promo.used_count += 1
+                promo.save()
+
             except PromoCode.DoesNotExist:
-                pass
+                raise serializers.ValidationError(f"Promo code '{promo_code_str}' is invalid or expired.")
 
         final_price = base_price - discount_amount
 
@@ -184,15 +194,28 @@ class AdminBookingSerializer(serializers.ModelSerializer):
             from payments.models import PromoCode
             try:
                 promo = PromoCode.objects.get(code=promo_code_str, is_active=True, valid_from__lte=timezone.now(), valid_until__gte=timezone.now())
-                if promo.min_booking_amount <= base_price:
-                    if promo.discount_type == 'percentage':
-                        discount_amount = base_price * (promo.discount_value / 100)
-                        if promo.max_discount and discount_amount > promo.max_discount:
-                            discount_amount = promo.max_discount
-                    else:
-                        discount_amount = promo.discount_value
+                
+                if promo.min_booking_amount > base_price:
+                    raise serializers.ValidationError(f"Promo code '{promo_code_str}' requires a minimum booking amount of ${promo.min_booking_amount}.")
+                
+                if promo.usage_limit and promo.used_count >= promo.usage_limit:
+                    raise serializers.ValidationError(f"Promo code '{promo_code_str}' has reached its usage limit.")
+
+                if promo.discount_type == 'percentage':
+                    discount_amount = base_price * (promo.discount_value / 100)
+                    if promo.max_discount and discount_amount > promo.max_discount:
+                        discount_amount = promo.max_discount
+                else:
+                    discount_amount = promo.discount_value
+                
+                # Increment usage count if promo code is successfully applied
+                # Note: This is a side effect in a helper method, might be better
+                # in the serializer's create/update itself, but for now, matching existing pattern.
+                promo.used_count += 1
+                promo.save()
+
             except PromoCode.DoesNotExist:
-                pass
+                raise serializers.ValidationError(f"Promo code '{promo_code_str}' is invalid or expired.")
         
         final_price = base_price - discount_amount
         
