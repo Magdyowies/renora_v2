@@ -85,17 +85,52 @@ const PaymentsPage = () => {
     },
     { 
       Header: 'Booking ID', 
-      accessor: 'booking',
+      accessor: 'booking', // This is still the Booking ID, not the booking object
       Cell: ({ value }) => (
         <span className="text-blue-600 dark:text-blue-400 font-medium">#{value}</span>
       )
     },
+    {
+      Header: 'Customer',
+      accessor: 'customer_name',
+      Cell: ({ value }) => (
+        <span className="text-gray-700 dark:text-gray-300">{value || 'N/A'}</span>
+      )
+    },
+    {
+      Header: 'Vehicle',
+      accessor: 'vehicle_name',
+      Cell: ({ value }) => (
+        <span className="text-gray-700 dark:text-gray-300">{value || 'N/A'}</span>
+      )
+    },
+    {
+      Header: 'Base Price',
+      accessor: 'base_booking_price',
+      Cell: ({ value }) => (
+        <span className="text-gray-700 dark:text-gray-300">{formatCurrency(value || 0)}</span>
+      )
+    },
+    {
+      Header: 'Discount',
+      accessor: 'discount_on_booking',
+      Cell: ({ value }) => (
+        <span className="text-red-500 dark:text-red-400">-{formatCurrency(value || 0)}</span>
+      )
+    },
+    {
+      Header: 'Promo Code',
+      accessor: 'promo_code_used',
+      Cell: ({ value }) => (
+        <span className="text-purple-600 dark:text-purple-400">{value || 'N/A'}</span>
+      )
+    },
     { 
-      Header: 'Amount', 
+      Header: 'Amount Paid', 
       accessor: 'amount',
       Cell: ({ value }) => (
-        <span className="font-semibold text-gray-900 dark:text-white text-lg">
-          {formatCurrency(value)}
+        <span className="font-semibold text-green-600 dark:text-green-400 text-lg">
+          {formatCurrency(value || 0)}
         </span>
       )
     },
