@@ -13,10 +13,11 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext.jsx';
+import { canAccessUsers } from '../utils/permissions.js';
 
-const navigation = [
+const initialNavigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Users', href: '/users', icon: UsersIcon },
+  { name: 'Users', href: '/users', icon: UsersIcon, requiredRole: 'admin' },
   { name: 'Vehicles', href: '/vehicles', icon: TruckIcon },
   { name: 'Bookings', href: '/bookings', icon: CalendarIcon },
   { name: 'Payments', href: '/payments', icon: CreditCardIcon },
@@ -66,6 +67,13 @@ const NavItem = ({ item, onClose }) => {
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
+
+  const navigation = initialNavigation.filter(item => {
+    if (item.name === 'Users') {
+      return canAccessUsers(user?.role);
+    }
+    return true;
+  });
 
   return (
     <>

@@ -36,6 +36,11 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+const AdminOnlyUsersPage = () => {
+  const { isAdmin } = useAuth();
+  return isAdmin ? <UsersPage /> : <Navigate to="/" replace />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -53,7 +58,7 @@ function App() {
             }
           >
             <Route path="/" element={<DashboardPage />} />
-            <Route path="/users" element={<UsersPage />} />
+            <Route path="/users" element={<AdminOnlyUsersPage />} />
             <Route path="/vehicles" element={<VehiclesPage />} />
             <Route path="/bookings" element={<BookingsPage />} />
             <Route path="/payments" element={<PaymentsPage />} />
