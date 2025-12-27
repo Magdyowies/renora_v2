@@ -3,6 +3,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets # Import viewsets
 from rest_framework import generics, permissions,filters
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import cloudinary.uploader # Re-add cloudinary import
 
 from .models import Vehicle, VehicleCategory, VehicleImage
 from .serializers import (
@@ -100,7 +103,7 @@ class VehicleCreateView(generics.CreateAPIView):
 
 class VendorVehiclesView(generics.ListAPIView):
     serializer_class = VehicleListSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsVendorOrAdmin]
 
     def get_queryset(self):
         return Vehicle.objects.filter(vendor=self.request.user)
@@ -120,16 +123,35 @@ class VehicleImageUploadView(APIView):
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
 
         images = request.FILES.getlist('images')
+        if not images:
+            return Response({'error': 'No images provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Enforce max 3 images per vehicle
+        if vehicle.images.count() + len(images) > 3:
+            return Response({'error': 'Cannot upload more than 3 images per vehicle'}, status=status.HTTP_400_BAD_REQUEST)
+
         is_primary = request.data.get('is_primary', 'false').lower() == 'true'
 
         created_images = []
         for i, image in enumerate(images):
-            img = VehicleImage.objects.create(
-                vehicle=vehicle,
-                image=image,
-                is_primary=is_primary and i == 0
-            )
-            created_images.append(img)
+            try:
+                # Upload to Cloudinary
+                upload_result = cloudinary.uploader.upload(image)
+                
+                # Enforce single primary image
+                if is_primary and i == 0:
+                    VehicleImage.objects.filter(vehicle=vehicle, is_primary=True).update(is_primary=False)
+
+                img = VehicleImage.objects.create(
+                    vehicle=vehicle,
+                    image_url=upload_result['secure_url'], # Save secure_url
+                    is_primary=is_primary and i == 0
+                )
+                created_images.append(img)
+            except Exception as e:
+                # Log the full error for debugging
+                print(f"Cloudinary upload failed: {e}")
+                return Response({'error': f'Image upload failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(VehicleImageSerializer(created_images, many=True).data, status=status.HTTP_201_CREATED)
 
@@ -137,6 +159,17 @@ class VehicleImageUploadView(APIView):
 class VehicleImageDeleteView(generics.DestroyAPIView):
     queryset = VehicleImage.objects.all()
     permission_classes = [IsVendorOrAdmin]
+
+    def perform_destroy(self, instance):
+        if instance.image_url:
+            try:
+                # Extract public_id from image_url
+                public_id = instance.image_url.split('/')[-1].split('.')[0]
+                cloudinary.uploader.destroy(public_id)
+            except Exception as e:
+                print(f"Cloudinary deletion failed for {instance.image_url}: {e}")
+                # Log the error but don't prevent deletion from DB
+        instance.delete()
 
     def get_object(self):
         return VehicleImage.objects.get(pk=self.kwargs['image_pk'], vehicle_id=self.kwargs['pk'])

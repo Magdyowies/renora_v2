@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
+import { getVehiclePrimaryImage } from '../utils/imageUtils' // Import the utility
 
 export default function Home() {
   const { user } = useAuth()
@@ -24,13 +25,7 @@ export default function Home() {
     }
     fetchVehicles()
   }, [])
-    const getImageUrl = (path) => {
-  if (!path) return "https://via.placeholder.com/600x400";
-  if (path.startsWith("http")) return path;
-  return `http://localhost:8000${path}`;
-};
-
-
+    
   const features = [
     { icon: '🚗', title: 'Wide Selection', description: 'Choose from hundreds of vehicles' },
     { icon: '💰', title: 'Best Prices', description: 'Competitive rates guaranteed' },
@@ -156,9 +151,10 @@ export default function Home() {
                 <div className="position-relative">
                   <Card.Img 
                     variant="top" 
-                    src={getImageUrl(vehicle.primary_image?.image)} 
+                    src={getVehiclePrimaryImage(vehicle)}
                     className="vehicle-image"
                     alt={vehicle.name}
+                    loading="lazy"
                   />
                   {vehicle.status === 'available' ? (
                     <Badge bg="success" className="position-absolute top-0 end-0 m-3">

@@ -11,3 +11,5 @@ django-filter
 Pillow
 faker
 drf-spectacular
+cloudinary
+python-dotenv

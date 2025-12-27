@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
-import { Container, Row, Col, Card, Form, Button, Badge } from 'react-bootstrap'
+import { Container, Row, Col, Card, Form, Button, Badge, Alert } from 'react-bootstrap' // Added Alert
 import { useState, useEffect } from 'react'
 import vehiclesService from '../services/vehiclesService'
 import LoadingSpinner from '../components/LoadingSpinner'
 import toast from 'react-hot-toast'
+import { getVehiclePrimaryImage } from '../utils/imageUtils' // Import the new utility
 
 export default function Search() {
   const [vehicles, setVehicles] = useState([])
@@ -50,14 +51,6 @@ export default function Search() {
     // Search query
     if (searchQuery && !vehicle.name.toLowerCase().includes(searchQuery.toLowerCase())) return false
     
-    // Feature filter (assuming vehicle.features is an array of objects with a 'name' property)
-    // if (filters.features.length > 0) {
-    //   const vehicleFeatureNames = vehicle.features.map(f => f.name);
-    //   if (!filters.features.every(filterFeature => vehicleFeatureNames.includes(filterFeature))) {
-    //     return false;
-    //   }
-    // }
-    
     return true
   })
 
@@ -76,12 +69,6 @@ export default function Search() {
         return 0
     }
   })
-  const getImageUrl = (path) => {
-  if (!path) return "https://via.placeholder.com/600x400";
-  if (path.startsWith("http")) return path;
-  return `http://localhost:8000${path}`;
-};
-
 
   const resetFilters = () => {
     setFilters({
@@ -173,7 +160,6 @@ export default function Search() {
               {/* Category */}
               <div className="mb-4">
                 <h6 className="fw-bold mb-3">Category</h6>
-                {/* Dynamically fetch categories or use a predefined list if backend provides one */}
                 {['SUV', 'Sedan', 'Sports', 'Coupe', 'Luxury', 'Electric'].map((cat) => (
                   <Form.Check
                     key={cat}
@@ -211,15 +197,6 @@ export default function Search() {
               {/* Features */}
               <div className="mb-4">
                 <h6 className="fw-bold mb-3">Features</h6>
-                {/* Features are not available in the provided vehicle data structure */}
-                {/* {['Bluetooth', 'GPS', 'Sunroof', 'Heated Seats', 'Apple CarPlay'].map((feature) => (
-                  <Form.Check 
-                    key={feature}
-                    type="checkbox" 
-                    label={feature} 
-                    className="mb-2" 
-                  />
-                ))} */}
                  <p className="text-muted small">Features filter not yet implemented.</p>
               </div>
             </div>
@@ -261,15 +238,13 @@ export default function Search() {
                     <Card className="vehicle-card h-100">
                       <div className="position-relative">
                        <Card.Img
-  variant="top"
-  src={getImageUrl(vehicle.primary_image?.image)}
-
-
-  className="vehicle-image"
-  alt="Vehicle"
-  style={{ height: '200px', objectFit: 'cover' }}
-/>
-
+                          variant="top"
+                          src={getVehiclePrimaryImage(vehicle)}
+                          className="vehicle-image"
+                          alt={vehicle.name}
+                          style={{ height: '200px', objectFit: 'cover' }}
+                          loading="lazy"
+                        />
                         <Badge 
                           bg="secondary" 
                           className="position-absolute"

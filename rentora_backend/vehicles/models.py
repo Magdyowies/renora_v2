@@ -45,6 +45,8 @@ class Vehicle(models.Model):
     doors = models.IntegerField(default=4)
     price_per_day = models.DecimalField(max_digits=10, decimal_places=2)
     location = models.CharField(max_length=200)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     description = models.TextField(blank=True)
     features = models.JSONField(default=list, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
@@ -63,7 +65,8 @@ class Vehicle(models.Model):
 
 class VehicleImage(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='vehicles/')
+    image = models.ImageField(upload_to='vehicles/', blank=True, null=True)
+    image_url = models.URLField(max_length=1024, blank=True, null=True)
     is_primary = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
