@@ -197,10 +197,10 @@ export default function Dashboard() {
                         <td className="fw-bold">#{booking.id}</td>
                         <td>
                           <div className="d-flex align-items-center">
-                            {booking.vehicle.primary_image?.image && (
+                            {booking.vehicle_details?.primary_image?.image && (
                               <img 
-                                src={booking.vehicle.primary_image.image} 
-                                alt={booking.vehicle.name}
+                                src={booking.vehicle_details.primary_image.image} 
+                                alt={booking.vehicle_details.name}
                                 style={{ 
                                   width: '50px', 
                                   height: '50px', 
@@ -211,8 +211,8 @@ export default function Dashboard() {
                               />
                             )}
                             <div>
-                              <div className="fw-semibold">{booking.vehicle.name}</div>
-                              <small className="text-muted">{booking.vehicle.category_name}</small>
+                              <div className="fw-semibold">{booking.vehicle_details.name}</div>
+                              <small className="text-muted">{booking.vehicle_details.category_name}</small>
                             </div>
                           </div>
                         </td>
@@ -358,7 +358,7 @@ export default function Dashboard() {
           <Button 
             variant="primary" 
             as={Link} 
-            to={`/vehicle/${selectedBooking?.vehicle.id}`}
+            to={`/vehicle/${selectedBooking?.vehicle_details.id}`}
             onClick={() => setShowModal(false)}
           >
             View Vehicle
