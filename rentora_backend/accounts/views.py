@@ -2,6 +2,8 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from django.db.models import Sum
+from decimal import Decimal
 
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserProfileSerializer,
@@ -305,11 +307,11 @@ class UserStatsView(APIView):
 
         bookings = Booking.objects.filter(customer=user)
 
+        total_spent = bookings.aggregate(total_spent=Sum('final_price'))['total_spent'] or Decimal('0.00')
+
         stats = {
             "totalBookings": bookings.count(),
-            "totalSpent": sum(
-                b.total_price for b in bookings if b.total_price
-            ),
+            "totalSpent": total_spent,
             "activeRentals": bookings.filter(status="active").count(),
             "completedRentals": bookings.filter(status="completed").count(),
         }

@@ -56,7 +56,7 @@ export default function Navbar() {
                 <NavDropdown 
                   title={
                     <span style={{ color: '#4a5568' , fontWeight: '600' , fontSize: '25px' }}>
-                      Hello , <span  className="fw-bold" style={{ color: '#14b8a6' }}>{isAdmin ? 'Admin' : user?.username} </span>
+                      Hello , <span  className="fw-bold" style={{ color: '#14b8a6' }}>{isAdmin ? 'Admin' : user?.first_name || user?.username} </span>
                     </span>
                   } 
                   id="user-dropdown"

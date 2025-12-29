@@ -193,22 +193,25 @@ export default function Profile() {
                 <div className="mb-3">
                   <div className="d-flex justify-content-between mb-1">
                     <span className="text-muted small">Total Bookings</span>
-                    <span className="fw-bold">2</span>
+                    <span className="fw-bold">{userStats.totalBookings}</span>
                   </div>
                 </div>
                 <div className="mb-3">
-              
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">Total Spent</span>
+                    <span className="fw-bold">${userStats.totalSpent.toFixed(2)}</span>
+                  </div>
                 </div>
                 <div className="mb-3">
                   <div className="d-flex justify-content-between mb-1">
-                    {/* <span className="text-muted small">Loyalty Points</span> */}
-                    {/* <span className="fw-bold text-primary">{userStats.loyalty_points} pts</span> */}
+                    <span className="text-muted small">Active Rentals</span>
+                    <span className="fw-bold">{userStats.activeRentals}</span>
                   </div>
                 </div>
                 <div>
                   <div className="d-flex justify-content-between mb-1">
-                    {/* <span className="text-muted small">Member Since</span>
-                    <span className="fw-bold">{userStats.member_since ? new Date(userStats.member_since).toLocaleDateString() : 'N/A'}</span> */}
+                    <span className="text-muted small">Completed Rentals</span>
+                    <span className="fw-bold">{userStats.completedRentals}</span>
                   </div>
                 </div>
               </Card.Body>

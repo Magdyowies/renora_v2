@@ -28,7 +28,7 @@ export default function SignIn() {
     try {
       // Call real login API from AuthContext
       const result = await login(data.email, data.password, data.remember)
-      const isAdmin = result?.isAdmin
+      const isAdmin = result?.role === 'admin'
 
       if (isAdmin) {
         toast.success('Welcome back, Admin!')

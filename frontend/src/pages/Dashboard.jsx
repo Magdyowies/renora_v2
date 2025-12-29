@@ -115,7 +115,7 @@ export default function Dashboard() {
       {/* Welcome Section */}
       <Row className="mb-4">
         <Col>
-          <h1 className="fw-bold mb-2">Welcome back, {user?.name || user?.email}! 👋</h1>
+          <h1 className="fw-bold mb-2">Welcome back, {user?.first_name || user?.username || user?.email}! 👋</h1>
           <p className="text-muted">Here's an overview of your rentals</p>
         </Col>
       </Row>
@@ -302,8 +302,8 @@ export default function Dashboard() {
                 <h5 className="fw-bold mb-3">Trip Information</h5>
                 <div className="mb-3">
                   <label className="text-muted small">Customer</label>
-                  <div className="fw-semibold">{selectedBooking.customer.first_name} {selectedBooking.customer.last_name}</div>
-                  <div className="small text-muted">{selectedBooking.customer.email}</div>
+                  <div className="fw-semibold">{selectedBooking.customer?.first_name} {selectedBooking.customer?.last_name}</div>
+                  <div className="small text-muted">{selectedBooking.customer?.email}</div>
                 </div>
                 <div className="mb-3">
                   <label className="text-muted small">Pickup Location</label>
