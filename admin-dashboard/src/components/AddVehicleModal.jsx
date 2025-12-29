@@ -3,7 +3,6 @@ import Modal from 'react-modal';
 import Input from './Input';
 import api from '../services/api';
 import ImageUpload from './ImageUpload';
-
 const customModalStyles = {
   content: {
     top: '50%',
@@ -12,11 +11,13 @@ const customModalStyles = {
     bottom: 'auto',
     marginRight: '-50%',
     transform: 'translate(-50%, -50%)',
-    backgroundColor: '#fff',
+    backgroundColor: '#1f2937',
     borderRadius: '12px',
     padding: '2rem',
     width: '90%',
-    maxWidth: '500px',
+    maxWidth: '600px', // Slightly wider often looks better for 2-column grids
+    maxHeight: '90vh', // Limits height to 90% of the viewport
+    overflowY: 'auto', // Enables vertical scrolling
     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
     border: 'none',
   },

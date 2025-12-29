@@ -30,7 +30,8 @@ const AdminRoute = ({ children }) => {
   }
 
   if (!isAuthenticated || (!isAdmin && !isVendor)) {
-    return <Navigate to="/login" replace />;
+    window.location.href = import.meta.env.VITE_MAIN_WEBSITE_URL;
+    return null; 
   }
 
   return children;

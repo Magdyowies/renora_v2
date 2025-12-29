@@ -50,10 +50,14 @@ export default function Home() {
       </Container>
     )
   }
+  
 
   return (
     <div>
-      {/* Hero Section with Background Image */}
+      {
+        
+    }
+      
       <div className="hero-section-image">
         <div className="hero-overlay">
           <Container className="text-center py-5">
@@ -195,7 +199,7 @@ export default function Home() {
           ))}
         </Row>
       </Container>
-
+          
       {/* CTA Section */}
       <div className="bg-primary text-white py-5">
         <Container className="text-center">
@@ -204,16 +208,28 @@ export default function Home() {
             {user ? 'Browse our collection and book your perfect ride' : 'Join thousands of satisfied customers'}
           </p>
           {user ? (
-            <Button as={Link} to="/search" size="lg" variant="light" className="px-5 py-3">
-              Browse Vehicles
-            </Button>
+            <>
+              <Button as={Link} to="/search" size="lg" variant="light" className="px-5 py-3 me-3">
+                Browse Vehicles
+              </Button>
+              <a href={`${import.meta.env.VITE_ADMIN_DASHBOARD_URL}/login`} className="btn btn-primary" style={{backgroundColor: '#14b8a6', borderColor: '#14b8a6', color: 'white', padding: '12px 24px', borderRadius: '8px', fontSize: '1.25rem', fontWeight: '600'}}>
+                Go to Dashboard
+              </a>
+            </>
           ) : (
-            <Button as={Link} to="/signup" size="lg" variant="light" className="px-5 py-3">
-              Sign Up Now
-            </Button>
+            <>
+              <Button as={Link} to="/signup" size="lg" variant="light" className="px-5 py-3 me-3">
+                Sign Up Now
+              </Button>
+              <a href={`${import.meta.env.VITE_ADMIN_DASHBOARD_URL}/login`} className="btn btn-primary" style={{backgroundColor: '#14b8a6', borderColor: '#14b8a6', color: 'white', padding: '12px 24px', borderRadius: '8px', fontSize: '1.25rem', fontWeight: '600'}}>
+                Go to Dashboard
+              </a>
+            </>
           )}
         </Container>
       </div>
+      
     </div>
+    
   )
 }

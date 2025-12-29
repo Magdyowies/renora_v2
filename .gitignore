@@ -13,6 +13,8 @@ media/
 # Node / Frontend
 node_modules/
 dist/
+admin-dashboard/.env
+frontend/.env
 
 # OS / Editor
 .DS_Store
