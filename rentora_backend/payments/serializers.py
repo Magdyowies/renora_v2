@@ -74,3 +74,11 @@ class PromoCodeSerializer(serializers.ModelSerializer):
 class PromoCodeValidateSerializer(serializers.Serializer):
     code = serializers.CharField()
     booking_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+
+class CreatePaymentIntentSerializer(serializers.Serializer):
+    booking_id = serializers.IntegerField()
+
+
+class StripePaymentVerifySerializer(serializers.Serializer):
+    payment_intent_id = serializers.CharField()

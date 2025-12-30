@@ -212,7 +212,7 @@ CORS_ALLOW_CREDENTIALS = True
 # --------------------------------------------------
 # STRIPE
 # --------------------------------------------------
-STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 

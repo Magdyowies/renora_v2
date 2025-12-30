@@ -63,12 +63,38 @@ const createPayment = async (booking_id, method, promo_code = null) => {
   }
 };
 
+const createPaymentIntent = async (booking_id) => {
+  try {
+    const response = await api.post('/payments/create-payment-intent/', {
+      booking_id,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating payment intent:', error);
+    throw error;
+  }
+};
+
+const verifyPayment = async (payment_intent_id) => {
+  try {
+    const response = await api.post('/bookings/payments/verify/', {
+      payment_intent_id,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    throw error;
+  }
+};
+
 const paymentsService = {
   getWalletBalance,
   getWalletTransactions,
   getPaymentHistory,
   validatePromoCode,
   createPayment,
+  createPaymentIntent,
+  verifyPayment,
 };
 
 export default paymentsService;

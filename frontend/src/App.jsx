@@ -19,6 +19,7 @@ import Dashboard from './pages/Dashboard'
 import MyBookings from './pages/MyBookings'
 import Profile from './pages/Profile'
 import Payment from './pages/Payment'
+import StripePaymentPage from './pages/StripePaymentPage'
 import HowItWorks from './pages/HowItWorks'
 import Business from './pages/Business'
 import Contact from './pages/Contact'
@@ -66,7 +67,8 @@ function App() {
                   <Route path="/my-bookings" element={<MyBookings />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/booking-success/:bookingId" element={<BookingSuccess />} /> {/* New route */}
-                  <Route path="/payment/:bookingId" element={<Payment />} /> {/* Corrected route */}
+                  <Route path="/payment/:bookingId" element={<StripePaymentPage />} />
+
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>

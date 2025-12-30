@@ -3,12 +3,15 @@ from .views import (
     WalletView, WalletTransactionsView, WalletTopUpView,
     PaymentCreateView, PaymentHistoryView,
     PromoCodeListView, PromoCodeValidateView, PromoCodeDetailView,
-    StripeWebhookView, PaymentVerifyView
+    StripeWebhookView, PaymentVerifyView, CreatePaymentIntentView,
+    StripePaymentVerifyView
 )
 
 urlpatterns = [
     path('', PaymentHistoryView.as_view(), name='payment_list'), # Added for root access
     path('create/', PaymentCreateView.as_view(), name='payment_create'),
+    path('create-payment-intent/', CreatePaymentIntentView.as_view(), name='create_payment_intent'),
+    path('verify-payment/', StripePaymentVerifyView.as_view(), name='verify_payment'),
     path('history/', PaymentHistoryView.as_view(), name='payment_history'),
     path('wallet/', WalletView.as_view(), name='wallet'),
     path('wallet/transactions/', WalletTransactionsView.as_view(), name='wallet_transactions'),

@@ -120,10 +120,10 @@ export default function MyBookings() {
               >
                 View Vehicle
               </Button>
-              {booking.status === 'pending' && ( // Only show Pay Now for pending bookings
+              {booking.status === 'pending' && (
                 <Button
                   as={Link}
-                  to={`/payment/${booking.id}`} // Link to payment page with booking ID
+                  to={`/payment/${booking.id}`}
                   variant="primary"
                   size="sm"
                 >

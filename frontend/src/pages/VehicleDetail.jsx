@@ -212,15 +212,7 @@ export default function VehicleDetail() {
                   </Form.Group>
                 </ListGroup.Item>
                 <ListGroup.Item className="px-0">
-                  <Form.Group className="mt-3">
-                    <Form.Label className="fw-semibold">Promo Code (Optional)</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="Enter promo code"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
-                    />
-                  </Form.Group>
+
                 </ListGroup.Item>
               </ListGroup>
               <Button

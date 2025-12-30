@@ -10,7 +10,8 @@ import os
 from .models import Payment, Wallet, WalletTransaction, PromoCode
 from .serializers import (
     PaymentSerializer, PaymentCreateSerializer, WalletSerializer,
-    WalletTransactionSerializer, PromoCodeSerializer, PromoCodeValidateSerializer
+    WalletTransactionSerializer, PromoCodeSerializer, PromoCodeValidateSerializer,
+    CreatePaymentIntentSerializer
 )
 
 
@@ -313,3 +314,103 @@ class PaymentVerifyView(APIView):
             return Response(PaymentSerializer(payment).data)
         except Payment.DoesNotExist:
             return Response({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+from bookings.models import Booking
+from . import stripe_service
+class CreatePaymentIntentView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = CreatePaymentIntentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        booking_id = serializer.validated_data['booking_id']
+
+        try:
+            booking = Booking.objects.get(id=booking_id)
+        except Booking.DoesNotExist:
+            return Response(
+                {'error': 'Booking not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if booking.customer != request.user:
+            return Response(
+                {'error': 'Not authorized'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if booking.status != 'pending':
+            return Response(
+                {'error': 'Booking is not pending payment'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if booking.payments.filter(status='completed').exists():
+            return Response(
+                {'error': 'Booking already paid'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        payment_intent = stripe_service.create_payment_intent(
+            amount=booking.final_price,
+            booking_id=booking.id,
+            user_id=request.user.id
+        )
+
+        return Response({'client_secret': payment_intent.client_secret})
+
+
+from .serializers import StripePaymentVerifySerializer
+
+class StripePaymentVerifyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = StripePaymentVerifySerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        payment_intent_id = serializer.validated_data['payment_intent_id']
+
+        try:
+            payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+        except stripe.error.StripeError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        if payment_intent.status == 'succeeded':
+            booking_id = payment_intent.metadata.get('booking_id')
+            if not booking_id:
+                return Response({'error': 'Booking ID not found in payment intent metadata.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                booking = Booking.objects.get(id=booking_id)
+            except Booking.DoesNotExist:
+                return Response({'error': 'Booking not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            if booking.customer != request.user:
+                return Response({'error': 'You are not authorized to verify this payment.'}, status=status.HTTP_403_FORBIDDEN)
+
+            with transaction.atomic():
+                if booking.status == 'pending':
+                    booking.status = 'confirmed'
+                    booking.save()
+
+                    Payment.objects.create(
+                        booking=booking,
+                        user=request.user,
+                        amount=booking.final_price,
+                        method='stripe',
+                        status='completed',
+                        transaction_id=payment_intent.id,
+                        payment_details=payment_intent.charges.data[0].billing_details.dict() if payment_intent.charges.data else None
+                    )
+                    return Response({'success': True, 'booking_status': 'confirmed'}, status=status.HTTP_200_OK)
+                elif booking.status == 'confirmed':
+                     return Response({'success': True, 'booking_status': 'already confirmed'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': f'Booking status is {booking.status}, not pending.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            return Response({'error': 'Payment not successful.'}, status=status.HTTP_400_BAD_REQUEST)
