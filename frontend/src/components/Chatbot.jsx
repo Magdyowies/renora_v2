@@ -1,17 +1,16 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button, Card, Form } from 'react-bootstrap'
+import { startChatSession, sendChatMessage } from '../services/chatService'
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState([
-    {
-      type: 'bot',
-      text: 'Hi! 👋 I\'m your Rentora assistant. How can I help you today?',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ])
+  const [sessionId, setSessionId] = useState(null)
+  const [isLoadingSession, setIsLoadingSession] = useState(false)
+
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+
   const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
@@ -25,82 +24,104 @@ export default function Chatbot() {
   const quickReplies = [
     '🚗 Browse vehicles',
     '💰 Pricing info',
-    '📍 Locations',
     '🎫 Book a car',
     '❓ Help'
   ]
 
-  const botResponses = {
-    pricing: 'Our prices start from $50/day and go up to $500/day depending on the vehicle. We offer:\n\n• Economy cars: $50-80/day\n• SUVs: $100-200/day\n• Luxury vehicles: $250-500/day\n\nAll rentals include insurance and unlimited mileage!',
-    
-    locations: 'We have multiple pickup locations:\n\n📍 Downtown San Francisco\n📍 San Francisco Airport (SFO)\n📍 Oakland\n📍 San Jose\n\nYou can select your preferred location during booking.',
-    
-    booking: 'Booking is easy! Just follow these steps:\n\n1️⃣ Search for available vehicles\n2️⃣ Select your dates and location\n3️⃣ Choose your perfect car\n4️⃣ Complete payment\n\nWould you like me to help you start a booking?',
-    
-    requirements: 'To rent a car, you need:\n\n✓ Valid driver\'s license (21+ years)\n✓ Credit or debit card\n✓ Proof of insurance\n\nInternational drivers need an International Driving Permit (IDP).',
-    
-    insurance: 'All our rentals include:\n\n🛡️ Comprehensive insurance\n🛡️ Collision damage waiver\n🛡️ Theft protection\n🛡️ Third-party liability\n\nAdditional coverage options are available at checkout.',
-    
-    cancel: 'Our cancellation policy:\n\n✅ Free cancellation up to 24 hours before pickup\n⚠️ 50% refund if cancelled 12-24 hours before\n❌ No refund for same-day cancellations\n\nYou can modify your booking anytime from your dashboard.',
-    
-    default: 'I can help you with:\n\n• Finding the perfect vehicle\n• Pricing and discounts\n• Booking process\n• Pickup locations\n• Insurance information\n• Cancellation policy\n\nWhat would you like to know more about?'
-  }
+  // ===============================
+  // Open Chat & Start Session
+  // ===============================
+  const openChat = async () => {
+    setIsOpen(true)
 
-  const getBotResponse = (userMessage) => {
-    const msg = userMessage.toLowerCase()
-    
-    if (msg.includes('price') || msg.includes('cost') || msg.includes('pricing')) {
-      return botResponses.pricing
-    } else if (msg.includes('location') || msg.includes('where') || msg.includes('pickup')) {
-      return botResponses.locations
-    } else if (msg.includes('book') || msg.includes('rent') || msg.includes('reserve')) {
-      return botResponses.booking
-    } else if (msg.includes('requirement') || msg.includes('need') || msg.includes('license')) {
-      return botResponses.requirements
-    } else if (msg.includes('insurance') || msg.includes('coverage') || msg.includes('protection')) {
-      return botResponses.insurance
-    } else if (msg.includes('cancel') || msg.includes('refund') || msg.includes('modify')) {
-      return botResponses.cancel
-    } else {
-      return botResponses.default
+    if (!sessionId) {
+      try {
+        setIsLoadingSession(true)
+        const data = await startChatSession()
+
+        setSessionId(data.id)
+
+        // Initial bot greeting (created by backend)
+        if (data.messages && data.messages.length > 0) {
+          setMessages([
+            {
+              type: 'bot',
+              text: data.messages[0].content,
+              time: new Date().toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+            }
+          ])
+        }
+      } catch (err) {
+        console.error('Failed to start chat session', err)
+      } finally {
+        setIsLoadingSession(false)
+      }
     }
   }
 
-  const handleSend = (messageText = input) => {
-    if (!messageText.trim()) return
+  // ===============================
+  // Send Message
+  // ===============================
+  const handleSend = async (messageText = input) => {
+    if (!messageText.trim() || !sessionId) return
 
     const userMessage = {
       type: 'user',
       text: messageText,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
     }
 
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsTyping(true)
 
-    setTimeout(() => {
+    try {
+      const data = await sendChatMessage(sessionId, messageText)
+
       const botMessage = {
         type: 'bot',
-        text: getBotResponse(messageText),
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        text: data.bot_message.content,
+        time: new Date(data.bot_message.created_at).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
       }
+
       setMessages(prev => [...prev, botMessage])
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        {
+          type: 'bot',
+          text: '⚠️ Something went wrong. Please try again.',
+          time: new Date().toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        }
+      ])
+    } finally {
       setIsTyping(false)
-    }, 1000)
+    }
   }
 
   const handleQuickReply = (reply) => {
-    const cleanReply = reply.replace(/[🚗💰📍🎫❓]/gu, '').trim()
-    handleSend(cleanReply)
+    const clean = reply.replace(/[🚗💰🎫❓]/gu, '').trim()
+    handleSend(clean)
   }
 
   return (
     <>
-      {/* Chat Button */}
+      {/* Floating Chat Button */}
       {!isOpen && (
         <Button
-          onClick={() => setIsOpen(true)}
+          onClick={openChat}
           style={{
             position: 'fixed',
             bottom: '20px',
@@ -112,14 +133,8 @@ export default function Chatbot() {
             border: 'none',
             boxShadow: '0 4px 12px rgba(20, 184, 166, 0.4)',
             zIndex: 9999,
-            fontSize: '1.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.3s ease'
+            fontSize: '1.5rem'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
           💬
         </Button>
@@ -148,32 +163,16 @@ export default function Chatbot() {
             style={{
               background: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)',
               color: 'white',
-              padding: '1rem 1.25rem',
+              padding: '1rem',
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
+              justifyContent: 'space-between'
             }}
           >
-            <div className="d-flex align-items-center">
-              <div
-                style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  background: '#4ade80',
-                  marginRight: '10px',
-                  animation: 'pulse 2s infinite'
-                }}
-              />
-              <div>
-                <h6 className="mb-0 fw-bold">Rentora Assistant</h6>
-                <small style={{ opacity: 0.9 }}>Online • Typically replies instantly</small>
-              </div>
-            </div>
+            <strong>Rentora Assistant</strong>
             <Button
               variant="link"
               onClick={() => setIsOpen(false)}
-              style={{ color: 'white', textDecoration: 'none', fontSize: '1.5rem', padding: 0 }}
+              style={{ color: 'white', fontSize: '1.5rem', padding: 0 }}
             >
               ×
             </Button>
@@ -188,59 +187,39 @@ export default function Chatbot() {
               backgroundColor: '#f8fafc'
             }}
           >
-            {messages.map((msg, index) => (
+            {messages.map((msg, i) => (
               <div
-                key={index}
+                key={i}
                 style={{
-                  marginBottom: '1rem',
                   display: 'flex',
-                  justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start'
+                  justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start',
+                  marginBottom: '0.75rem'
                 }}
               >
                 <div
                   style={{
                     maxWidth: '75%',
                     padding: '0.75rem 1rem',
-                    borderRadius: msg.type === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                    background: msg.type === 'user' 
-                      ? 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)'
-                      : 'white',
+                    borderRadius:
+                      msg.type === 'user'
+                        ? '16px 16px 4px 16px'
+                        : '16px 16px 16px 4px',
+                    background:
+                      msg.type === 'user'
+                        ? 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)'
+                        : '#ffffff',
                     color: msg.type === 'user' ? 'white' : '#1a1a1a',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                     whiteSpace: 'pre-line'
                   }}
                 >
-                  <div style={{ fontSize: '0.95rem' }}>{msg.text}</div>
-                  <div
-                    style={{
-                      fontSize: '0.7rem',
-                      marginTop: '0.25rem',
-                      opacity: 0.7,
-                      textAlign: 'right'
-                    }}
-                  >
-                    {msg.time}
-                  </div>
+                  {msg.text}
                 </div>
               </div>
             ))}
 
             {isTyping && (
-              <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '1rem' }}>
-                <div
-                  style={{
-                    padding: '0.75rem 1rem',
-                    borderRadius: '16px',
-                    background: 'white',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-                  }}
-                >
-                  <div className="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
-                </div>
+              <div style={{ fontStyle: 'italic', opacity: 0.7 }}>
+                Rentora is typing…
               </div>
             )}
 
@@ -249,92 +228,43 @@ export default function Chatbot() {
 
           {/* Quick Replies */}
           {messages.length === 1 && (
-            <div style={{ padding: '0.5rem 1rem', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {quickReplies.map((reply, index) => (
-                  <Button
-                    key={index}
-                    variant="outline-primary"
-                    size="sm"
-                    onClick={() => handleQuickReply(reply)}
-                    style={{
-                      borderRadius: '20px',
-                      fontSize: '0.85rem',
-                      padding: '0.35rem 0.75rem'
-                    }}
-                  >
-                    {reply}
-                  </Button>
-                ))}
-              </div>
+            <div style={{ padding: '0.5rem' }}>
+              {quickReplies.map((q, i) => (
+                <Button
+                  key={i}
+                  size="sm"
+                  variant="outline-primary"
+                  onClick={() => handleQuickReply(q)}
+                  style={{ margin: '0.25rem', borderRadius: '20px' }}
+                >
+                  {q}
+                </Button>
+              ))}
             </div>
           )}
 
           {/* Input */}
-          <div style={{ padding: '1rem', borderTop: '1px solid #e2e8f0', backgroundColor: 'white' }}>
-            <Form onSubmit={(e) => { e.preventDefault(); handleSend(); }}>
+          <div style={{ padding: '1rem', borderTop: '1px solid #e2e8f0' }}>
+            <Form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSend()
+              }}
+            >
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <Form.Control
                   type="text"
                   placeholder="Type your message..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  style={{ borderRadius: '20px', flex: 1 }}
                 />
-                <Button
-                  type="submit"
-                  style={{
-                    borderRadius: '50%',
-                    width: '40px',
-                    height: '40px',
-                    padding: 0,
-                    background: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  ➤
-                </Button>
+                <Button type="submit">➤</Button>
               </div>
             </Form>
           </div>
         </Card>
       )}
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-
-        .typing-indicator {
-          display: flex;
-          gap: 4px;
-        }
-
-        .typing-indicator span {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #94a3b8;
-          animation: typing 1.4s infinite;
-        }
-
-        .typing-indicator span:nth-child(2) {
-          animation-delay: 0.2s;
-        }
-
-        .typing-indicator span:nth-child(3) {
-          animation-delay: 0.4s;
-        }
-
-        @keyframes typing {
-          0%, 60%, 100% { transform: translateY(0); }
-          30% { transform: translateY(-10px); }
-        }
-      `}</style>
     </>
   )
 }
+        

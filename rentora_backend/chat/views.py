@@ -1,12 +1,18 @@
-import os
+from django.conf import settings
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import ChatSession, ChatMessage
-from .serializers import ChatSessionSerializer, ChatSessionListSerializer, ChatMessageSerializer
-from vehicles.models import Vehicle
-from bookings.models import Booking
 
+from .models import ChatSession, ChatMessage
+from .serializers import (
+    ChatSessionSerializer,
+    ChatSessionListSerializer,
+    ChatMessageSerializer,
+)
+
+from vehicles.models import Vehicle
+
+# Optional OpenAI support
 try:
     from openai import OpenAI
     OPENAI_AVAILABLE = True
@@ -14,15 +20,16 @@ except ImportError:
     OPENAI_AVAILABLE = False
 
 
+# ============================================================
+# Chat API Root
+# ============================================================
+
 class ChatApiRoot(APIView):
-    """
-    Root endpoint for the Chat API.
-    """
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         return Response({
-            "message": "Welcome to the Rentora Chat API.",
+            "message": "Welcome to the Rentora Chat API",
             "endpoints": {
                 "list_create_sessions": "/api/chat/sessions/",
                 "session_detail": "/api/chat/sessions/<id>/",
@@ -32,29 +39,43 @@ class ChatApiRoot(APIView):
         })
 
 
+# ============================================================
+# Chat Sessions
+# ============================================================
+
 class ChatSessionListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return ChatSessionSerializer
-        return ChatSessionListSerializer
+        return (
+            ChatSessionSerializer
+            if self.request.method == "POST"
+            else ChatSessionListSerializer
+        )
 
     def get_queryset(self):
         return ChatSession.objects.filter(user=self.request.user)
 
-    def perform_create(self, serializer):
-        session = ChatSession.objects.create(user=self.request.user)
+    def create(self, request, *args, **kwargs):
+        session = ChatSession.objects.create(user=request.user)
+
         ChatMessage.objects.create(
             session=session,
-            sender_type='bot',
-            content="Hello! I'm Rentora's AI assistant. How can I help you today? I can help you with:\n\n- Finding the perfect vehicle for your needs\n- Answering questions about our rental process\n- Providing information about pricing and availability\n- Helping with booking and payment questions"
+            sender_type="bot",
+            content=(
+                "Hello! I'm Rentora's assistant 🤖\n\n"
+                "I can help you with:\n"
+                "- Finding vehicles 🚗\n"
+                "- Pricing & availability 💰\n"
+                "- Booking & payments 📅\n"
+                "- General support ❓"
+            )
         )
-        return session
-    
-    def create(self, request, *args, **kwargs):
-        session = self.perform_create(None)
-        return Response(ChatSessionSerializer(session).data, status=status.HTTP_201_CREATED)
+
+        return Response(
+            ChatSessionSerializer(session).data,
+            status=status.HTTP_201_CREATED
+        )
 
 
 class ChatSessionDetailView(generics.RetrieveAPIView):
@@ -65,6 +86,10 @@ class ChatSessionDetailView(generics.RetrieveAPIView):
         return ChatSession.objects.filter(user=self.request.user)
 
 
+# ============================================================
+# Send Message
+# ============================================================
+
 class SendMessageView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -72,117 +97,129 @@ class SendMessageView(APIView):
         try:
             session = ChatSession.objects.get(pk=pk, user=request.user)
         except ChatSession.DoesNotExist:
-            return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Session not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        content = request.data.get('content', '').strip()
+        content = request.data.get("content", "").strip()
         if not content:
-            return Response({'error': 'Message content is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Message content is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         user_message = ChatMessage.objects.create(
             session=session,
-            sender_type='user',
-            content=content
+            sender_type="user",
+            content=content,
         )
 
-        bot_response = self.get_ai_response(session, content, request.user)
+        bot_reply = self.get_ai_or_fallback_response(
+            session=session,
+            user_message=content,
+            user=request.user,
+        )
 
         bot_message = ChatMessage.objects.create(
             session=session,
-            sender_type='bot',
-            content=bot_response
+            sender_type="bot",
+            content=bot_reply,
         )
 
-        return Response({
-            'user_message': ChatMessageSerializer(user_message).data,
-            'bot_message': ChatMessageSerializer(bot_message).data
-        })
+        return Response(
+            {
+                "user_message": ChatMessageSerializer(user_message).data,
+                "bot_message": ChatMessageSerializer(bot_message).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
-    def get_ai_response(self, session, user_message, user):
-        api_key = os.environ.get('OPENAI_API_KEY')
-        
+    # ==================================================
+    # AI OR FALLBACK (INSIDE CLASS ✅)
+    # ==================================================
+    def get_ai_or_fallback_response(self, session, user_message, user):
+        api_key = getattr(settings, "OPENAI_API_KEY", None)
+
         if not OPENAI_AVAILABLE or not api_key:
             return self.get_fallback_response(user_message, user)
 
         try:
             client = OpenAI(api_key=api_key)
-            
-            available_vehicles = Vehicle.objects.filter(status='available')[:5]
+
+            vehicles = Vehicle.objects.filter(status=True)[:3]
             vehicles_info = "\n".join([
-                f"- {v.brand} {v.model} ({v.year}): ${v.price_per_day}/day, {v.transmission}, {v.seats} seats"
-                for v in available_vehicles
-            ])
+                f"- {v.brand} {v.model} ({v.year}) — ${v.price_per_day}/day"
+                for v in vehicles
+            ]) or "No vehicles available."
 
-            user_bookings = Booking.objects.filter(customer=user).order_by('-created_at')[:3]
-            bookings_info = "\n".join([
-                f"- Booking #{b.id}: {b.vehicle.name}, {b.status}, {b.pickup_date.strftime('%Y-%m-%d')}"
-                for b in user_bookings
-            ]) if user_bookings else "No recent bookings"
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are Rentora's intelligent assistant for a car rental platform. "
+                        "Answer naturally and helpfully.\n\n"
+                        f"Available vehicles:\n{vehicles_info}"
+                    ),
+                }
+            ]
 
-            system_prompt = f"""You are Rentora's helpful AI assistant for a vehicle rental platform.
-Your role is to help customers with:
-- Finding and recommending vehicles
-- Explaining the rental process
-- Answering pricing questions
-- Helping with bookings
-- Providing general customer support
-
-Available vehicles:
-{vehicles_info}
-
-Customer's recent bookings:
-{bookings_info}
-
-Be friendly, helpful, and concise. If asked about specific booking or payment issues, suggest contacting support.
-Always encourage users to explore our vehicle selection and make bookings through the platform."""
-
-            messages = [{"role": "system", "content": system_prompt}]
-            
-            recent_messages = session.messages.order_by('-created_at')[:10][::-1]
-            for msg in recent_messages:
+            history = session.messages.order_by("-created_at")[:6][::-1]
+            for msg in history:
                 role = "user" if msg.sender_type == "user" else "assistant"
                 messages.append({"role": role, "content": msg.content})
 
             messages.append({"role": "user", "content": user_message})
 
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=messages,
-                max_completion_tokens=500
+            response = client.responses.create(
+                model="gpt-4.1-mini",
+                input=messages,
+                max_output_tokens=300,
             )
 
-            return response.choices[0].message.content
+            return response.output_text
 
         except Exception as e:
+            print("AI ERROR:", e)
             return self.get_fallback_response(user_message, user)
 
+    # ==================================================
+    # SAFE FALLBACK
+    # ==================================================
     def get_fallback_response(self, user_message, user):
-        message_lower = user_message.lower()
-        
-        if any(word in message_lower for word in ['book', 'rent', 'reserve']):
-            return "To book a vehicle, browse our available vehicles, select one you like, choose your pickup and return dates, and proceed to payment. Would you like me to help you find a specific type of vehicle?"
-        
-        elif any(word in message_lower for word in ['price', 'cost', 'rate', 'how much']):
-            return "Our prices vary by vehicle type and rental duration. You can see the daily rate on each vehicle listing. We also offer promo codes for discounts! Check the vehicles page to see current pricing."
-        
-        elif any(word in message_lower for word in ['cancel', 'refund']):
-            return "You can cancel pending or confirmed bookings from your My Bookings page. Refunds for cancelled bookings are processed to your wallet within 24-48 hours."
-        
-        elif any(word in message_lower for word in ['payment', 'pay', 'wallet']):
-            return "We accept wallet payments. You can top up your wallet and use it for bookings. Payment is required to confirm your booking."
-        
-        elif any(word in message_lower for word in ['vehicle', 'car', 'suv', 'sedan']):
-            vehicles = Vehicle.objects.filter(status='available')[:3]
-            if vehicles:
-                vehicle_list = "\n".join([f"- {v.brand} {v.model}: ${v.price_per_day}/day" for v in vehicles])
-                return f"Here are some available vehicles:\n{vehicle_list}\n\nVisit our Vehicles page to see all options and filter by your preferences!"
-            return "Check out our Vehicles page to see all available options. You can filter by category, price, and features."
-        
-        elif any(word in message_lower for word in ['hello', 'hi', 'hey']):
-            return f"Hello {user.first_name or user.username}! Welcome to Rentora. How can I help you today?"
-        
-        else:
-            return "I'm here to help! You can ask me about:\n- Available vehicles and recommendations\n- Booking and rental process\n- Pricing and promotions\n- Payment options\n\nWhat would you like to know?"
+        msg = "".join(c for c in user_message.lower() if c.isalnum() or c.isspace())
 
+        if any(word in msg for word in ["book", "rent", "reserve"]):
+            return (
+                "To book a vehicle 🚗:\n"
+                "1️⃣ Browse available vehicles\n"
+                "2️⃣ Choose your dates\n"
+                "3️⃣ Confirm & pay\n\n"
+                "Would you like help finding a car?"
+            )
+
+        if any(word in msg for word in ["price", "cost", "rate"]):
+            return (
+                "Our prices depend on vehicle type and rental duration 💰.\n"
+                "You can see the daily price on each vehicle card."
+            )
+
+        if any(word in msg for word in ["hello", "hi", "hey"]):
+            return f"Hello {user.first_name or user.email}! 👋 How can I help you today?"
+
+        return (
+            "I'm here to help 😊\n\n"
+            "You can ask me about:\n"
+            "- Vehicles 🚗\n"
+            "- Pricing 💰\n"
+            "- Booking 📅\n"
+            "- Payments 💳"
+        )
+
+
+# ============================================================
+# Close Session
+# ============================================================
 
 class CloseSessionView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -191,8 +228,11 @@ class CloseSessionView(APIView):
         try:
             session = ChatSession.objects.get(pk=pk, user=request.user)
         except ChatSession.DoesNotExist:
-            return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Session not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        session.status = 'closed'
+        session.status = "closed"
         session.save()
-        return Response({'message': 'Session closed'})
+        return Response({"message": "Session closed successfully"})
