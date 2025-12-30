@@ -8,28 +8,26 @@ const StripePaymentForm = ({ clientSecret }) => {
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
+
   const [error, setError] = useState(null);
   const [processing, setProcessing] = useState(false);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!stripe || !elements || processing) return;
+
     setProcessing(true);
+    setError(null);
 
-    if (!stripe || !elements) {
-      setProcessing(false);
-      return;
-    }
+    const card = elements.getElement(CardElement);
 
-    const cardElement = elements.getElement(CardElement);
+    const { error: stripeError, paymentIntent } =
+      await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card },
+      });
 
-    const { error: paymentError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-      },
-    });
-
-    if (paymentError) {
-      setError(paymentError.message);
+    if (stripeError) {
+      setError(stripeError.message);
       setProcessing(false);
       return;
     }
@@ -37,30 +35,51 @@ const StripePaymentForm = ({ clientSecret }) => {
     if (paymentIntent.status === 'succeeded') {
       try {
         await paymentsService.verifyPayment(paymentIntent.id);
-        toast.success('Payment successful! Your booking is confirmed.');
+        toast.success('Payment successful!');
         navigate('/my-bookings');
-      } catch (verificationError) {
-        setError('Payment succeeded, but verification failed. Please contact support.');
+      } catch {
+        setError('Payment verified failed. Contact support.');
       }
     }
+
     setProcessing(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-4 border rounded">
-        <CardElement options={{style: {base: {fontSize: '16px'}}}} />
+    <form onSubmit={handleSubmit}>
+      {/* Card input */}
+      <div className="mb-3 p-3 border rounded bg-white">
+        <CardElement
+          options={{
+            style: {
+              base: {
+                fontSize: '16px',
+                color: '#212529',
+                '::placeholder': { color: '#6c757d' },
+              },
+            },
+          }}
+        />
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="alert alert-danger py-2 text-center">
+          {error}
+        </div>
+      )}
+
+      {/* Submit */}
       <button
         type="submit"
         disabled={!stripe || processing}
-        className="w-full px-4 py-2 font-bold text-white bg-blue-600 rounded hover:bg-blue-700 disabled:bg-gray-400"
+        className="btn btn-success w-100 fw-bold"
       >
-        {processing ? 'Processing...' : 'Pay'}
+        {processing ? 'Processing…' : 'Pay Now'}
       </button>
-      {error && <div className="text-red-500">{error}</div>}
     </form>
   );
 };
 
 export default StripePaymentForm;
+  
