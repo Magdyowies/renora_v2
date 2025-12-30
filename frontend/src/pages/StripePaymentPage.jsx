@@ -10,7 +10,7 @@ const stripePromise = loadStripe(
 );
 
 const StripePaymentPage = () => {
-  const { bookingId } = useParams(); // ✅ FIX HERE
+  const { bookingId } = useParams(); 
   const [clientSecret, setClientSecret] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,7 +19,7 @@ const StripePaymentPage = () => {
     const fetchPaymentIntent = async () => {
       try {
         setLoading(true);
-        const data = await paymentsService.createPaymentIntent(bookingId); // ✅ FIX
+        const data = await paymentsService.createPaymentIntent(bookingId); 
         setClientSecret(data.client_secret);
       } catch (err) {
         console.error(err);
@@ -32,7 +32,7 @@ const StripePaymentPage = () => {
     if (bookingId) {
       fetchPaymentIntent();
     }
-  }, [bookingId]); // ✅ FIX
+  }, [bookingId]); 
 
   if (loading) {
     return <div>Loading payment details...</div>;

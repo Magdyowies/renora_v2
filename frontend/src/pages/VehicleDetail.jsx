@@ -219,7 +219,7 @@ export default function VehicleDetail() {
                 variant="primary"
                 className="w-100"
                 onClick={handleBookNow}
-                disabled={bookingProcessing || vehicle.status !== 'available'} // Disable if not available
+                disabled={bookingProcessing || vehicle.status !== 'available'} 
               >
                 {bookingProcessing ? 'Processing...' : 'Book Now'}
               </Button>
